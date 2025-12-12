@@ -19,4 +19,13 @@ function lib.GetWorldSpaceCenter(entity)
 	return origin + (mins + maxs) * 0.5
 end
 
+---@param entity Entity
+function lib.GetAmmoCount(entity, iAmmoIndex)
+	if iAmmoIndex == -1 then
+		return 0
+	end
+
+	return entity:GetPropDataTableInt("m_iAmmo")[iAmmoIndex]
+end
+
 return lib

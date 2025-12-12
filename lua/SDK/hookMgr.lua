@@ -1,3 +1,6 @@
+--- UNUSED
+--- Can unload script with UnloadScript(GetScriptName())!
+
 local lib = {}
 local hooks = {}
 

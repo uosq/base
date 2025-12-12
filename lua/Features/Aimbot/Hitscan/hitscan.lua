@@ -17,10 +17,10 @@ function aim.Run(cmd, plocal, data)
 		return
 	end
 
-	local canshoot = weaponlib.CanShoot()
+	--[[local canshoot = weaponlib.CanShoot()
 	if not canshoot then
 		return
-	end
+	end]]
 
 	local entitylist = entities.FindByClass("CTFPlayer")
 
@@ -35,7 +35,7 @@ function aim.Run(cmd, plocal, data)
 	---@type {[1]: Vector3, [2]: number}[]
 	local validTargets = {}
 
-	local maxFov = 30
+	local maxFov = data.aimbot.hitscan.fov
 
 	local trace
 
@@ -70,7 +70,7 @@ function aim.Run(cmd, plocal, data)
 		return a[2] < b[2]
 	end)
 
-	if canshoot and data.aimbot.hitscan.autoshoot then
+	if data.aimbot.hitscan.autoshoot then
 		cmd.buttons = cmd.buttons | IN_ATTACK
 	end
 

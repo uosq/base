@@ -33,6 +33,7 @@ func main() {
 	window.SetContent(container.NewVScroll(container.NewVBox(
 		CreateToggle("Enabled", &settings.Aimbot.Enabled),
 		CreateToggle("Hitscan", &settings.Aimbot.Hitscan.Enabled),
+		CreateToggle("Autoshoot", &settings.Aimbot.Hitscan.Autoshoot),
 		CreateSlider("FOV", &settings.Aimbot.Hitscan.Fov, 0, 180),
 		CreateKeySelection("Key", &settings.Aimbot.Hitscan.Key),
 
