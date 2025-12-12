@@ -2,6 +2,7 @@
 local weaponlib = require("SDK.weapons")]]
 
 local hitscan = require("Features.Aimbot.Hitscan.hitscan")
+local projectile = require("Features.Aimbot.Proj.main")
 
 local weaponWrapper = require("SDK.wrappers.weapon")
 
@@ -24,21 +25,12 @@ function lib.Run(cmd, data)
 		return
 	end
 
-	local weapon = weaponWrapper.Get(plocal:GetPropEntity("m_hActiveWeapon"))
-	if weapon:CanShoot() == false then
-		return
-	end
-	--[[local weapon = entitylib.GetWeapon(plocal)
-	if weapon == nil then
-		return
-	end
-
-	if weaponlib.HasPrimaryAmmoForShot(plocal, weapon) == false then
-		return
-	end]]
+	local weapon = weaponWrapper.Get(m_hActiveWeapon)
 
 	if weapon:GetWeaponProjectileType() == E_ProjectileType.TF_PROJECTILE_BULLET then
-		hitscan.Run(cmd, plocal, data)
+		hitscan.Run(cmd, plocal, weapon, data)
+	elseif weapon:IsMeleeWeapon() == false then
+		projectile.Run(cmd, plocal, weapon, data)
 	end
 end
 

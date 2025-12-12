@@ -17,6 +17,8 @@
 ---@field enabled boolean
 ---@field fov number
 ---@field autoshoot boolean
+---@field key string
+---@field maxsimtime number
 
 ---@class Melee
 ---@field enabled boolean

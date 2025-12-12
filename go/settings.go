@@ -19,10 +19,11 @@ type AimHitscan struct {
 }
 
 type AimProj struct {
-	Enabled   bool    `json:"enabled"`
-	Fov       float64 `json:"fov"`
-	Autoshoot bool    `json:"autoshoot"`
-	Key       string  `json:"key"`
+	Enabled    bool    `json:"enabled"`
+	Fov        float64 `json:"fov"`
+	Autoshoot  bool    `json:"autoshoot"`
+	Key        string  `json:"key"`
+	MaxSimTime float64 `json:"maxsimtime"`
 }
 
 type AimMelee struct {

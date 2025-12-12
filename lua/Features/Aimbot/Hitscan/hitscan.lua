@@ -2,13 +2,13 @@ local aim = {}
 
 local mathlib = require("SDK.math")
 local entitylib = require("SDK.entity")
-local weaponlib = require("SDK.weapons")
 local inputlib = require("SDK.input")
 
 ---@param cmd UserCmd
 ---@param plocal Entity
 ---@param data Settings
-function aim.Run(cmd, plocal, data)
+---@param weapon Weapon
+function aim.Run(cmd, plocal, weapon, data)
 	if data.aimbot.hitscan.enabled == false then
 		return
 	end
@@ -17,10 +17,9 @@ function aim.Run(cmd, plocal, data)
 		return
 	end
 
-	--[[local canshoot = weaponlib.CanShoot()
-	if not canshoot then
+	if weapon:CanShoot(cmd) == false then
 		return
-	end]]
+	end
 
 	local entitylist = entities.FindByClass("CTFPlayer")
 

@@ -34,12 +34,14 @@ func main() {
 		CreateToggle("Enabled", &settings.Aimbot.Enabled),
 		CreateToggle("Hitscan", &settings.Aimbot.Hitscan.Enabled),
 		CreateToggle("Autoshoot", &settings.Aimbot.Hitscan.Autoshoot),
-		CreateSlider("FOV", &settings.Aimbot.Hitscan.Fov, 0, 180),
 		CreateKeySelection("Key", &settings.Aimbot.Hitscan.Key),
+		CreateSlider("FOV", &settings.Aimbot.Hitscan.Fov, 0, 180),
 
 		CreateToggle("Projectile", &settings.Aimbot.Proj.Enabled),
-		CreateSlider("FOV", &settings.Aimbot.Proj.Fov, 0, 180),
+		CreateToggle("Autoshoot", &settings.Aimbot.Proj.Autoshoot),
 		CreateKeySelection("Key", &settings.Aimbot.Proj.Key),
+		CreateSlider("FOV", &settings.Aimbot.Proj.Fov, 0, 180),
+		CreateSlider("Max Simulation Time", &settings.Aimbot.Proj.MaxSimTime, 0, 5),
 	)))
 
 	window.ShowAndRun()

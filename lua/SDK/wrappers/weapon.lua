@@ -86,7 +86,12 @@ function Weapon:GetWeaponProjectileType()
 	return self.__handle:GetWeaponProjectileType()
 end
 
-function Weapon:CanShoot()
+---@param cmd UserCmd
+function Weapon:CanShoot(cmd)
+	if cmd.weaponselect ~= 0 then
+		return false
+	end
+
 	local owner = self:m_hOwner()
 	if owner == nil then
 		return false
@@ -104,6 +109,14 @@ function Weapon:CanShoot()
 
 	local tickBase = player:m_nTickBase() * globals.TickInterval()
 	return self:m_flNextPrimaryAttack() <= tickBase and player:m_flNextAttack() <= tickBase
+end
+
+function Weapon:m_iItemDefinitionIndex()
+	return self.__handle:GetPropInt("m_Item", "m_iItemDefinitionIndex")
+end
+
+function Weapon:GetCurrentCharge()
+	return self.__handle:CanCharge() and self.__handle:GetCurrentCharge() or 0
 end
 
 return Weapon
