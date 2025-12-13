@@ -127,7 +127,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	local gravity = 400 * info:GetGravity(charge)
 	local autoshoot = data.aimbot.proj.autoshoot
 
-	local attacking = false
+	local attacking = cmd.buttons & IN_ATTACK ~= 0
 	local canshoot = weapon:CanShoot(cmd)
 	
 	local trace, mask = nil, info.m_iTraceMask
@@ -171,7 +171,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 				end
 			end
 
-			if attacking or cmd.buttons & IN_ATTACK ~= 0 then
+			if attacking and canshoot then
 				cmd.viewangles = angle
 				cmd.sendpacket = false
 			end
