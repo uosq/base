@@ -68,11 +68,11 @@ function aim.Run(cmd, plocal, weapon, data, state)
 	end)
 
 	for _, target in ipairs (validTargets) do
-		if weapon:CanShootPrimary(cmd) then
-			if data.aimbot.hitscan.autoshoot then
-				cmd.buttons = cmd.buttons | IN_ATTACK
-			end
+		if data.aimbot.hitscan.autoshoot and weapon:CanPrimaryAttack() then
+			cmd.buttons = cmd.buttons | IN_ATTACK
+		end
 
+		if SDK.IsAttacking(lp, weapon, cmd, true) then
 			local angle = mathlib.DirectionToAngles(target[1])
 			cmd.viewangles = angle
 		end

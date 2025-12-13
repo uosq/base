@@ -3,6 +3,8 @@ local settings = require("Settings.settings")
 --local hookManager = require("SDK.hookMgr")
 local angleManager = require("SDK.angleMgr")
 
+local SDK = require("SDK.sdk")
+
 ---@param cmd UserCmd
 local function OnCreateMove(cmd)
 	if settings.GetStatus() == false then

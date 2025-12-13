@@ -52,4 +52,41 @@ function lib.SolveBallisticArc(p0, p1, speed, gravity)
 	return Vector3(pitch, yaw, 0)
 end
 
+--[[
+	inline float RemapVal(float flVal, float a, float b, float c, float d, bool bClamp = true)
+	{
+		if (a == b)
+			return flVal >= b ? d : c;
+
+		float t = (flVal - a) / (b - a);
+		if (bClamp)
+			t = std::clamp(t, 0.f, 1.f);
+
+		return Lerp(c, d, t);
+	}
+]]
+
+function lib.Lerp(a, b, t)
+	return a + (b - a) * t;
+end
+
+function lib.Clamp(val, min, max)
+	return math.min(max, math.max(val, min))
+end
+
+function lib.RemapVal(val, a, b, c, d, clamp)
+	clamp = clamp == nil and true or false
+
+	if a == b then
+		return val >= b and d or c
+	end
+
+	local t = (val - a) / (b - a)
+	if clamp then
+		t = lib.Clamp(t, 0, 1)
+	end
+
+	return lib.Lerp(c, d, t)
+end
+
 return lib

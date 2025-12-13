@@ -128,4 +128,45 @@ function Weapon:GetHandle()
 	return self.__handle
 end
 
+function Weapon:GetWeaponID()
+	return self.__handle:GetWeaponID()
+end
+
+function Weapon:GetSlot()
+	return self.__handle:GetLoadoutSlot()
+end
+
+function Weapon:m_iReloadMode()
+	return self.__handle:GetPropInt("m_iReloadMode")
+end
+
+---@param attrib string
+---@param defaultValue number? # optional (default = `1.0`)
+function Weapon:AttributeHookFloat(attrib, defaultValue)
+	return self.__handle:AttributeHookFloat(attrib, defaultValue)
+end
+
+---@param attrib string
+---@param defaultValue number? # optional (default = `1.0`)
+function Weapon:AttributeHookInt(attrib, defaultValue)
+	return self.__handle:AttributeHookInt(attrib, defaultValue)
+end
+
+function Weapon:m_flChargedDamage()
+	if self.__handle:GetWeaponID() == E_WeaponBaseID.TF_WEAPON_SNIPERRIFLE
+	or self.__handle:GetWeaponID() == E_WeaponBaseID.TF_WEAPON_SNIPERRIFLE_CLASSIC then
+		return self.__handle:GetPropFloat("SniperRifleLocalData", "m_flChargedDamage")
+	end
+
+	return 0
+end
+
+function Weapon:m_iWeaponState()
+	if self.__handle:GetWeaponID() == TF_WEAPON_MINIGUN then
+		return self.__handle:GetPropInt("m_iWeaponState")
+	end
+
+	return 0
+end
+
 return Weapon

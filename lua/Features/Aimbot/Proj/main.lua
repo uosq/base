@@ -127,7 +127,6 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	local gravity = 400 * info:GetGravity(charge)
 	local autoshoot = data.aimbot.proj.autoshoot
 
-	local attacking = false
 	local canshoot = weapon:CanShootPrimary(cmd)
 
 	local trace, mask = nil, info.m_iTraceMask
@@ -183,26 +182,20 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	--- this is really fucking buggy
 	--- doesn't work right with chargeable weapons (huntsman, stickybomb launcher, etc)
 	if autoshoot then
-		if info.m_bCharges == false and canshoot then
+		if info.m_bCharges == false and weapon:CanPrimaryAttack() then
 			cmd.buttons = cmd.buttons | IN_ATTACK
-			attacking = true
 		elseif info.m_bCharges then
-			if charge < 0.05 then
-				if weapon:HasPrimaryAmmoForShot() then
+			if charge == 0 then
+				if weapon:CanPrimaryAttack() then
 					cmd.buttons = cmd.buttons | IN_ATTACK
 					cmd.sendpacket = true
 				end
 				return
 			end
-
-			cmd.buttons = cmd.buttons & ~IN_ATTACK
-			attacking = true
 		end
-	else
-		attacking = canshoot and cmd.buttons & IN_ATTACK ~= 0
 	end
 
-	if attacking then
+	if SDK.IsAttacking(lp, weapon, cmd, true) then
 		cmd.viewangles = validAngle
 		cmd.sendpacket = false
 	end
