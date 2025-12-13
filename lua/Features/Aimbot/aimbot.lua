@@ -8,9 +8,25 @@ local weaponWrapper = require("SDK.wrappers.weapon")
 
 local lib = {}
 
+---@class AimbotState
+local state = {
+	target = nil
+}
+
+---@return AimbotState
+function lib.GetState()
+	return state
+end
+
+function lib.ResetState()
+	state.target = nil
+end
+
 ---@param data Settings
 ---@param cmd UserCmd
 function lib.Run(cmd, data)
+	lib.ResetState()
+
 	if data.aimbot.enabled == false then
 		return
 	end
@@ -28,9 +44,9 @@ function lib.Run(cmd, data)
 	local weapon = weaponWrapper.Get(m_hActiveWeapon)
 
 	if weapon:GetWeaponProjectileType() == E_ProjectileType.TF_PROJECTILE_BULLET then
-		hitscan.Run(cmd, plocal, weapon, data)
+		hitscan.Run(cmd, plocal, weapon, data, state)
 	elseif weapon:IsMeleeWeapon() == false then
-		projectile.Run(cmd, plocal, weapon, data)
+		projectile.Run(cmd, plocal, weapon, data, state)
 	end
 end
 

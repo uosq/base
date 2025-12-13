@@ -30,19 +30,42 @@ func main() {
 	window := app.NewWindow("Base")
 	window.Resize(fyne.NewSize(600, 400))
 
-	window.SetContent(container.NewVScroll(container.NewVBox(
-		CreateToggle("Enabled", &settings.Aimbot.Enabled),
-		CreateToggle("Hitscan", &settings.Aimbot.Hitscan.Enabled),
-		CreateToggle("Autoshoot", &settings.Aimbot.Hitscan.Autoshoot),
-		CreateKeySelection("Key", &settings.Aimbot.Hitscan.Key),
-		CreateSlider("FOV", &settings.Aimbot.Hitscan.Fov, 0, 180),
+	window.SetContent(container.NewVScroll(
 
-		CreateToggle("Projectile", &settings.Aimbot.Proj.Enabled),
-		CreateToggle("Autoshoot", &settings.Aimbot.Proj.Autoshoot),
-		CreateKeySelection("Key", &settings.Aimbot.Proj.Key),
-		CreateSlider("FOV", &settings.Aimbot.Proj.Fov, 0, 180),
-		CreateSlider("Max Simulation Time", &settings.Aimbot.Proj.MaxSimTime, 0, 5),
-	)))
+		container.NewAppTabs(
+			container.NewTabItem("Aimbot", container.NewVBox(
+				CreateToggle("Enabled", &settings.Aimbot.Enabled),
+				CreateToggle("Hitscan", &settings.Aimbot.Hitscan.Enabled),
+				CreateToggle("Autoshoot", &settings.Aimbot.Hitscan.Autoshoot),
+				CreateKeySelection("Key", &settings.Aimbot.Hitscan.Key),
+				CreateSlider("FOV", &settings.Aimbot.Hitscan.Fov, 0, 180),
+
+				CreateToggle("Projectile", &settings.Aimbot.Proj.Enabled),
+				CreateToggle("Autoshoot", &settings.Aimbot.Proj.Autoshoot),
+				CreateKeySelection("Key", &settings.Aimbot.Proj.Key),
+				CreateSlider("FOV", &settings.Aimbot.Proj.Fov, 0, 180),
+				CreateSlider("Max Simulation Time", &settings.Aimbot.Proj.MaxSimTime, 0, 5),
+			)),
+
+			container.NewTabItem("Visuals", container.NewVBox(
+				CreateCenterLabel("Glow"),
+				CreateToggle("Enabled", &settings.Glow.Enabled),
+
+				CreateCenterLabel("Entity Filter"),
+				CreateToggle("Players", &settings.Glow.Players),
+				CreateToggle("Weapons", &settings.Glow.Weapon),
+				CreateToggle("Sentries", &settings.Glow.Sentries),
+				CreateToggle("Dispensers", &settings.Glow.Dispensers),
+				CreateToggle("Teleporters", &settings.Glow.Teleporters),
+				CreateToggle("ChristmasBall", &settings.Glow.ChristmasBall),
+				CreateToggle("MedKit / Ammo", &settings.Glow.MedAmmo),
+				CreateToggle("ViewModel", &settings.Glow.ViewModel),
+
+				CreateSliderStepped("Blurriness", &settings.Glow.Blurriness, 0, 30, 1.0),
+				CreateSliderStepped("Stencil", &settings.Glow.Stencil, 0, 30, 1.0),
+			)),
+		),
+	))
 
 	window.ShowAndRun()
 }

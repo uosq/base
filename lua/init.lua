@@ -14,5 +14,8 @@ require("Hooks.CreateMove")
 --- Load Draw
 require("Hooks.Draw")
 
+--- Load DoPostScreenSpaceEffects
+require("Hooks.DoPostScreenSpaceEffects")
+
 --- Load Unload
 require("Hooks.Unload")

@@ -2,6 +2,7 @@ package main
 
 type Settings struct {
 	Aimbot Aimbot `json:"aimbot"`
+	Glow   Glow   `json:"glow"`
 }
 
 type Aimbot struct {
@@ -29,4 +30,18 @@ type AimProj struct {
 type AimMelee struct {
 	Enabled bool `json:"enabled"`
 	Rage    bool `json:"rage"`
+}
+
+type Glow struct {
+	Stencil       float64 `json:"stencil"`
+	Blurriness    float64 `json:"blurriness"`
+	Enabled       bool    `json:"enabled"`
+	Weapon        bool    `json:"weapon"`
+	Players       bool    `json:"players"`
+	Sentries      bool    `json:"sentries"`
+	Dispensers    bool    `json:"dispensers"`
+	Teleporters   bool    `json:"teleporters"`
+	MedAmmo       bool    `json:"medammo"`
+	ViewModel     bool    `json:"viewmodel"`
+	ChristmasBall bool    `json:"christmasball"`
 }

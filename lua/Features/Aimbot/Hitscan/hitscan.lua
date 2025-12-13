@@ -8,16 +8,13 @@ local inputlib = require("SDK.input")
 ---@param plocal Entity
 ---@param data Settings
 ---@param weapon Weapon
-function aim.Run(cmd, plocal, weapon, data)
+---@param state AimbotState
+function aim.Run(cmd, plocal, weapon, data, state)
 	if data.aimbot.hitscan.enabled == false then
 		return
 	end
 
 	if inputlib.GetKey(data.aimbot.hitscan.key) == false then
-		return
-	end
-
-	if weapon:CanShoot(cmd) == false then
 		return
 	end
 
@@ -31,7 +28,7 @@ function aim.Run(cmd, plocal, weapon, data)
 	local localTeam = plocal:GetTeamNumber()
 	local localIndex = plocal:GetIndex()
 
-	---@type {[1]: Vector3, [2]: number}[]
+	---@type {[1]: Vector3, [2]: number, [3]: Entity}[]
 	local validTargets = {}
 
 	local maxFov = data.aimbot.hitscan.fov
@@ -55,7 +52,7 @@ function aim.Run(cmd, plocal, weapon, data)
 				end)
 
 				if trace.fraction == 1.0 then
-					validTargets[#validTargets+1] = {dir, fovDeg}
+					validTargets[#validTargets+1] = {dir, fovDeg, player}
 				end
 			end
 		end
@@ -74,11 +71,13 @@ function aim.Run(cmd, plocal, weapon, data)
 	end
 
 	for _, target in ipairs (validTargets) do
-		if cmd.buttons & IN_ATTACK ~= 0 then
+		if weapon:CanShoot(cmd) and cmd.buttons & IN_ATTACK ~= 0 then
 			local angle = mathlib.DirectionToAngles(target[1])
 			cmd.viewangles = angle
-			return
 		end
+
+		state.target = target[3]
+		return
 	end
 end
 

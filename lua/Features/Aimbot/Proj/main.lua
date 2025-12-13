@@ -52,7 +52,8 @@ end
 ---@param data Settings
 ---@param plocal Entity
 ---@param weapon Weapon
-function lib.Run(cmd, plocal, weapon, data)
+---@param state AimbotState
+function lib.Run(cmd, plocal, weapon, data, state)
 	if data.aimbot.proj.enabled == false then
 		return
 	end
@@ -174,6 +175,9 @@ function lib.Run(cmd, plocal, weapon, data)
 				cmd.viewangles = angle
 				cmd.sendpacket = false
 			end
+
+			state.target = target[1]
+			return
 		end
 
 		::skip::

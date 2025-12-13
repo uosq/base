@@ -57,6 +57,20 @@ func CreateSlider(label string, value *float64, min float64, max float64) *fyne.
 	return sliderContainer
 }
 
+func CreateSliderStepped(label string, value *float64, min float64, max float64, step float64) *fyne.Container {
+	fovLabel := widget.NewLabel(label)
+	fovValueLabel := widget.NewLabel(strconv.FormatFloat(*value, 'f', 2, 64))
+	fovSlider := widget.NewSlider(min, max)
+	fovSlider.SetValue(*value)
+	fovSlider.OnChanged = func(f float64) {
+		*value = f
+		fovValueLabel.SetText(strconv.FormatFloat(f, 'f', 2, 64))
+	}
+	fovSlider.Step = step
+	sliderContainer := container.NewBorder(nil, nil, fovLabel, fovValueLabel, fovSlider)
+	return sliderContainer
+}
+
 func CreateEntry(label string, value *string) *fyne.Container {
 	labelWidget := widget.NewLabel(label)
 	textEntry := widget.NewEntry()
