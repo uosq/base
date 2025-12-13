@@ -43,7 +43,7 @@ function Player:GetHandle()
 	return self.__handle
 end
 
-function Player:m_bIsABot()
+--[[function Player:m_bIsABot()
 	return self.__handle:GetPropBool("m_bIsABot")
 end
 
@@ -603,6 +603,6 @@ end
 
 function Player:m_bRegenerating()
 	return self.__handle:GetPropInt("m_bRegenerating")
-end
+end]]
 
 return Player

@@ -135,6 +135,8 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	local hasGravity = info.m_bHasGravity
 	local dmgRadius = info.m_flDamageRadius
 
+	local validTarget, validAngle = nil, nil
+
 	for _, target in ipairs (validTargets) do
 		local distance = (localPos - SDK.AsPlayer(target[1]):GetWorldSpaceCenter()):Length()
 		if data.aimbot.proj.selfdamage == false and distance <= dmgRadius then
@@ -166,29 +168,46 @@ function lib.Run(cmd, plocal, weapon, data, state)
 				end
 			end
 
-			--- this is really fucking buggy
-			--- doesn't work right with chargeable weapons (huntsman, stickybomb launcher, etc)
-			if autoshoot then
-				if info.m_bCharges == false and canshoot then
-					cmd.buttons = cmd.buttons | IN_ATTACK
-					attacking = true
-				elseif info.m_bCharges then
-					cmd.buttons = cmd.buttons & ~IN_ATTACK
-					attacking = true
-				end
-			end
-
-			if attacking then
-				cmd.viewangles = angle
-				cmd.sendpacket = false
-			end
-
-			state.target = target[1]
-			return
+			validTarget = target[1]
+			validAngle = angle
+			break
 		end
 
 		::skip::
 	end
+
+	if not validTarget or not validAngle then
+		return
+	end
+
+	--- this is really fucking buggy
+	--- doesn't work right with chargeable weapons (huntsman, stickybomb launcher, etc)
+	if autoshoot then
+		if info.m_bCharges == false and canshoot then
+			cmd.buttons = cmd.buttons | IN_ATTACK
+			attacking = true
+		elseif info.m_bCharges then
+			if charge < 0.05 then
+				if weapon:HasPrimaryAmmoForShot() then
+					cmd.buttons = cmd.buttons | IN_ATTACK
+					cmd.sendpacket = true
+				end
+				return
+			end
+
+			cmd.buttons = cmd.buttons & ~IN_ATTACK
+			attacking = true
+		end
+	else
+		attacking = canshoot and cmd.buttons & IN_ATTACK ~= 0
+	end
+
+	if attacking then
+		cmd.viewangles = validAngle
+		cmd.sendpacket = false
+	end
+
+	state.target = validTarget
 end
 
 return lib
