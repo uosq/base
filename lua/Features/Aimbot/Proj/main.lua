@@ -195,7 +195,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 		end
 	end
 
-	if SDK.IsAttacking(lp, weapon, cmd, true) then
+	if SDK.IsAttacking(lp, weapon, cmd) then
 		cmd.viewangles = validAngle
 		cmd.sendpacket = false
 	end

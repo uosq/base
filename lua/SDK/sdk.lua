@@ -64,13 +64,13 @@ end
 ---@param plocal Player
 ---@param weapon Weapon
 ---@param cmd UserCmd
----@param useTickBase boolean
 ---@return boolean
-function sdk.IsAttacking(plocal, weapon, cmd, useTickBase)
+function sdk.IsAttacking(plocal, weapon, cmd)
 	if not plocal or cmd.weaponselect ~= 0 then
 		return false
 	end
 
+	local useTickBase = engine.GetServerIP() ~= "loopback"
 	local iTickBase = useTickBase and globals.TickCount() or plocal:m_nTickBase()
 
 	if weapon:GetSlot() == E_LoadoutSlot.LOADOUT_POSITION_MELEE then
@@ -170,7 +170,8 @@ function sdk.IsAttacking(plocal, weapon, cmd, useTickBase)
 			end
 		end
 
-		return false
+		--- on Amalgam this returns false, but if I do it then it breaks minigun
+		return not (weapon:HasPrimaryAmmoForShot() and cmd.buttons & IN_ATTACK ~= 0)
 	end
 
 	if weaponID == E_WeaponBaseID.TF_WEAPON_LUNCHBOX then
