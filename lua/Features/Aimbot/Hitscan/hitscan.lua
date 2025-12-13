@@ -1,8 +1,8 @@
 local aim = {}
 
-local mathlib = require("SDK.math")
-local entitylib = require("SDK.entity")
-local inputlib = require("SDK.input")
+local SDK = require("SDK.sdk")
+local mathlib = SDK.GetMathLib()
+local inputlib = SDK.GetInputLib()
 
 ---@param cmd UserCmd
 ---@param plocal Entity
@@ -24,7 +24,8 @@ function aim.Run(cmd, plocal, weapon, data, state)
 	local forward = viewangle:Forward()
 	mathlib.NormalizeVector(forward)
 
-	local localPos = entitylib.GetEyePos(plocal)
+	local lp = SDK.AsPlayer(plocal)
+	local localPos = lp:GetEyePos()
 	local localTeam = plocal:GetTeamNumber()
 	local localIndex = plocal:GetIndex()
 
@@ -37,7 +38,7 @@ function aim.Run(cmd, plocal, weapon, data, state)
 
 	for _, player in pairs (entitylist) do
 		if player:GetTeamNumber() ~= localTeam and player:IsAlive() and player:IsDormant() == false then
-			local center = entitylib.GetWorldSpaceCenter(player)
+			local center = SDK.AsPlayer(player):GetWorldSpaceCenter()
 			local dir = (center - localPos)
 
 			local distance = dir:Length()
@@ -66,12 +67,12 @@ function aim.Run(cmd, plocal, weapon, data, state)
 		return a[2] < b[2]
 	end)
 
-	if data.aimbot.hitscan.autoshoot then
-		cmd.buttons = cmd.buttons | IN_ATTACK
-	end
-
 	for _, target in ipairs (validTargets) do
-		if weapon:CanShoot(cmd) and cmd.buttons & IN_ATTACK ~= 0 then
+		if weapon:CanShootPrimary(cmd) then
+			if data.aimbot.hitscan.autoshoot then
+				cmd.buttons = cmd.buttons | IN_ATTACK
+			end
+
 			local angle = mathlib.DirectionToAngles(target[1])
 			cmd.viewangles = angle
 		end

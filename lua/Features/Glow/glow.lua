@@ -93,8 +93,8 @@ local function GetGuiColor(option)
 end
 
 ---@param entity Entity
----@param settings Settings
-local function GetColor(entity, settings)
+---@param weapon boolean
+local function GetColor(entity, weapon)
 	if entity:GetClass() == "CBaseAnimating" then
 		local modelName = models.GetModelName(entity:GetModel())
 		if string.find(modelName, "ammopack") then
@@ -118,7 +118,7 @@ local function GetColor(entity, settings)
 		return {1.0, 1.0, 1.0, 1.0}
 	end
 
-	if settings.glow.weapon and entity:IsWeapon() then
+	if weapon and entity:IsWeapon() then
 		return {1.0, 1.0, 1.0, 1.0}
 	end
 
@@ -152,15 +152,15 @@ local function DrawEntities(ents)
 end
 
 ---@param outTable table
----@param settings Settings
-local function GetPlayers(outTable, settings)
+---@param weapon boolean
+local function GetPlayers(outTable, weapon)
 	for _, player in pairs (entities.FindByClass("CTFPlayer")) do
 		if player:ShouldDraw() and player:IsDormant() == false then
-			local color = GetColor(player, settings)
+			local color = GetColor(player, weapon)
 			outTable[#outTable+1] = {player:GetIndex(), color}
 			local child = player:GetMoveChild()
 			while child ~= nil do
-				if settings.glow.weapon and child:IsWeapon() then
+				if weapon and child:IsWeapon() then
 					outTable[#outTable+1] = {child:GetIndex(), {1, 1, 1, 1}}
 				else
 					outTable[#outTable+1] = {child:GetIndex(), color}
@@ -171,26 +171,38 @@ local function GetPlayers(outTable, settings)
 	end
 end
 
----@param settings Settings
+---@param weapon boolean
 ---@param outTable table
 ---@param className string
-local function GetClass(className, outTable, settings)
+local function GetClass(className, outTable, weapon)
 	for _, building in pairs(entities.FindByClass(className)) do
 		if building:ShouldDraw() and building:IsDormant() == false then
-			outTable[#outTable+1] = {building:GetIndex(), GetColor(building, settings)}
+			outTable[#outTable+1] = {building:GetIndex(), GetColor(building, weapon)}
 		end
 	end
 end
 
----@param settings Settings
+---@param weapon boolean
 ---@param outTable table
-local function GetChristmasBalls(outTable, settings)
+local function GetChristmasBalls(outTable, weapon)
 	for _, ball in pairs (entities.FindByClass("CPhysicsProp")) do
 		if models.GetModelName(ball:GetModel()) == "models/props_gameplay/ball001.mdl" then
-			outTable[#outTable+1] = {ball:GetIndex(), GetColor(ball, settings)}
+			outTable[#outTable+1] = {ball:GetIndex(), GetColor(ball, weapon)}
 		end
 	end
 end
+
+--[[ flags
+	Enabled: 		0
+	Players = 		1
+	Weapons = 		2
+	Sentries = 		3
+	Dispensers = 		4
+	Teleporters = 		5
+	ChristmasBall = 	6
+	MedKit / Ammo = 	7
+	ViewModel = 		8
+]]
 
 --- call in DoPostScreenSpaceEffects
 ---@param settings Settings
@@ -207,7 +219,11 @@ function lib.Run(settings)
 		return
 	end
 
-	if settings.glow.enabled == false then
+	local flags = settings.glow.flags
+	local enabled = flags & (1 << 0) ~= 0
+	--print(enabled)
+
+	if enabled == false then
 		return
 	end
 
@@ -219,23 +235,32 @@ function lib.Run(settings)
 
 	local glowEnts = {}
 
-	if settings.glow.sentries then GetClass("CObjectSentrygun", glowEnts, settings) end
-	if settings.glow.dispensers then GetClass("CObjectDispenser", glowEnts, settings) end
-	if settings.glow.teleporters then GetClass("CObjectTeleporter", glowEnts, settings) end
-	if settings.glow.medammo then GetClass("CBaseAnimating", glowEnts, settings) end
-	if settings.glow.players then GetPlayers(glowEnts, settings) end
+	local players = flags & (1 << 1) ~= 0
+	local weapon = flags & (1 << 2) ~= 0
+	local sentries = flags & (1 << 3) ~= 0
+	local dispensers = flags & (1 << 4) ~= 0
+	local teleporters = flags & (1 << 5) ~= 0
+	local christmasball = flags & (1 << 6) ~= 0
+	local medammo = flags & (1 << 7) ~= 0
+	local viewmodel = flags & (1 << 8) ~= 0
 
-	if settings.glow.viewmodel then
+	if sentries then GetClass("CObjectSentrygun", glowEnts, weapon) end
+	if dispensers then GetClass("CObjectDispenser", glowEnts, weapon) end
+	if teleporters then GetClass("CObjectTeleporter", glowEnts, weapon) end
+	if medammo then GetClass("CBaseAnimating", glowEnts, weapon) end
+	if players then GetPlayers(glowEnts, weapon) end
+
+	if viewmodel then
 		local plocal = entities.GetLocalPlayer()
 		if plocal and plocal:GetPropBool("m_nForceTauntCam") == false and plocal:InCond(E_TFCOND.TFCond_Taunting) == false then
 			local _, _, cvar = client.GetConVar("cl_first_person_uses_world_model")
 			if cvar == "0" then
-				GetClass("CTFViewModel", glowEnts, settings)
+				GetClass("CTFViewModel", glowEnts, weapon)
 			end
 		end
 	end
 
-	if settings.glow.christmasball then GetChristmasBalls(glowEnts, settings) end
+	if christmasball then GetChristmasBalls(glowEnts, weapon) end
 
 	if #glowEnts == 0 then
 		return

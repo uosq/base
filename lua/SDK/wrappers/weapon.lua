@@ -87,17 +87,10 @@ function Weapon:GetWeaponProjectileType()
 end
 
 ---@param cmd UserCmd
-function Weapon:CanShoot(cmd)
+function Weapon:CanShootPrimary(cmd)
 	if cmd.weaponselect ~= 0 then
 		return false
 	end
-
-	local owner = self:m_hOwner()
-	if owner == nil then
-		return false
-	end
-
-	local player = playerWrapper.Get(owner)
 
 	if self:HasPrimaryAmmoForShot() == false then
 		return false
@@ -107,8 +100,20 @@ function Weapon:CanShoot(cmd)
 		return self:m_flNextPrimaryAttack() + self:GetWeaponData().smackDelay <= globals.CurTime()
 	end
 
-	local tickBase = player:m_nTickBase() * globals.TickInterval()
-	return self:m_flNextPrimaryAttack() <= tickBase and player:m_flNextAttack() <= tickBase
+	return self:CanPrimaryAttack()
+end
+
+---@param cmd UserCmd
+function Weapon:CanShootSecondary(cmd)
+	if cmd.weaponselect ~= 0 then
+		return false
+	end
+
+	if self:HasPrimaryAmmoForShot() == false then
+		return false
+	end
+
+	return self:CanSecondaryAttack()
 end
 
 function Weapon:m_iItemDefinitionIndex()
@@ -117,6 +122,10 @@ end
 
 function Weapon:GetCurrentCharge()
 	return self.__handle:CanCharge() and self.__handle:GetCurrentCharge() or 0
+end
+
+function Weapon:GetHandle()
+	return self.__handle
 end
 
 return Weapon

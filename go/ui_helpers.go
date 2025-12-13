@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"strconv"
 	"strings"
@@ -89,6 +90,16 @@ func CreateToggle(label string, value *bool) *widget.Check {
 	return toggle
 }
 
+func CreateToggleFlag(label string, value *uint16, flagNum uint16) *widget.Check {
+	toggle := widget.NewCheck(label, func(b bool) {
+		ToggleFlagBit(value, flagNum)
+		//fmt.Println(ReadFlagBit(*value, flagNum))
+	})
+
+	toggle.Checked = ReadFlagBit(*value, flagNum)
+	return toggle
+}
+
 func CreateColorPickerButton(label string, colorVal *color.RGBA, window fyne.Window) *widget.Button {
 	button := widget.NewButton(label, func() {
 		picker := dialog.NewColorPicker(label, "Choose Color", func(c color.Color) {
@@ -107,4 +118,18 @@ func CreateColorPickerButton(label string, colorVal *color.RGBA, window fyne.Win
 
 func CreateCenterLabel(label string) *fyne.Container {
 	return container.NewCenter(widget.NewLabel(label))
+}
+
+func ReadFlagBit(value uint16, flag uint16) bool {
+	return (value&(1<<flag) != 0)
+}
+
+// Pointers are so useful
+// Why does Lua not have them?!?!?!
+func ToggleFlagBit(value *uint16, n uint16) {
+	if n >= 15 {
+		fmt.Println("Trying to set bit bigger than integer can hold!")
+		return
+	}
+	*value ^= 1 << n
 }

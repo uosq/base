@@ -25,6 +25,7 @@ type AimProj struct {
 	Autoshoot  bool    `json:"autoshoot"`
 	Key        string  `json:"key"`
 	MaxSimTime float64 `json:"maxsimtime"`
+	SelfDamage bool    `json:"selfdamage"`
 }
 
 type AimMelee struct {
@@ -33,9 +34,10 @@ type AimMelee struct {
 }
 
 type Glow struct {
-	Stencil       float64 `json:"stencil"`
-	Blurriness    float64 `json:"blurriness"`
-	Enabled       bool    `json:"enabled"`
+	Stencil    float64 `json:"stencil"`
+	Blurriness float64 `json:"blurriness"`
+	Flags      uint16  `json:"flags"`
+	/*Enabled    bool    `json:"enabled"`
 	Weapon        bool    `json:"weapon"`
 	Players       bool    `json:"players"`
 	Sentries      bool    `json:"sentries"`
@@ -43,5 +45,5 @@ type Glow struct {
 	Teleporters   bool    `json:"teleporters"`
 	MedAmmo       bool    `json:"medammo"`
 	ViewModel     bool    `json:"viewmodel"`
-	ChristmasBall bool    `json:"christmasball"`
+	ChristmasBall bool    `json:"christmasball"`*/
 }

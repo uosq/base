@@ -1,7 +1,8 @@
 local settings = {}
 local data = {}
 
-local status = true
+local unload = false
+local status = false
 local attempts = 0
 
 local json = require("SDK.json")
@@ -15,10 +16,15 @@ function settings.GetStatus()
 	return status
 end
 
+function settings.ShouldUnload()
+	return unload
+end
+
 function settings.Store()
 	if attempts >= 3 then
 		data = nil
 		status = false
+		unload = true
 		return
 	end
 
@@ -35,6 +41,7 @@ function settings.Store()
 
 	data = decoded
 	attempts = 0
+	status = true
 end
 
 return settings

@@ -49,17 +49,18 @@ func main() {
 
 			container.NewTabItem("Visuals", container.NewVBox(
 				CreateCenterLabel("Glow"),
-				CreateToggle("Enabled", &settings.Glow.Enabled),
+				CreateToggleFlag("Enabled", &settings.Glow.Flags, 0),
 
 				CreateCenterLabel("Entity Filter"),
-				CreateToggle("Players", &settings.Glow.Players),
-				CreateToggle("Weapons", &settings.Glow.Weapon),
-				CreateToggle("Sentries", &settings.Glow.Sentries),
-				CreateToggle("Dispensers", &settings.Glow.Dispensers),
-				CreateToggle("Teleporters", &settings.Glow.Teleporters),
-				CreateToggle("ChristmasBall", &settings.Glow.ChristmasBall),
-				CreateToggle("MedKit / Ammo", &settings.Glow.MedAmmo),
-				CreateToggle("ViewModel", &settings.Glow.ViewModel),
+
+				CreateToggleFlag("Players", &settings.Glow.Flags, 1),
+				CreateToggleFlag("Weapons", &settings.Glow.Flags, 2),
+				CreateToggleFlag("Sentries", &settings.Glow.Flags, 3),
+				CreateToggleFlag("Dispensers", &settings.Glow.Flags, 4),
+				CreateToggleFlag("Teleporters", &settings.Glow.Flags, 5),
+				CreateToggleFlag("ChristmasBall", &settings.Glow.Flags, 6),
+				CreateToggleFlag("MedKit / Ammo", &settings.Glow.Flags, 7),
+				CreateToggleFlag("ViewModel", &settings.Glow.Flags, 8),
 
 				CreateSliderStepped("Blurriness", &settings.Glow.Blurriness, 0, 30, 1.0),
 				CreateSliderStepped("Stencil", &settings.Glow.Stencil, 0, 30, 1.0),

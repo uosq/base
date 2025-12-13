@@ -4,7 +4,7 @@ local angleManager = require("SDK.angleMgr")
 
 local function OnFrameStageNotify(stage)
 	if stage == E_ClientFrameStage.FRAME_START then
-		if settings.GetStatus() == false then
+		if settings.ShouldUnload() then
 			printc(255, 150, 150, 255, "Base - Failed to get settings, unloading...")
 			--hookManager.UnregisterAll()
 			UnloadScript(GetScriptName())

@@ -19,3 +19,5 @@ require("Hooks.DoPostScreenSpaceEffects")
 
 --- Load Unload
 require("Hooks.Unload")
+
+printc(150, 255, 150, 255, "Base - loaded successfully")

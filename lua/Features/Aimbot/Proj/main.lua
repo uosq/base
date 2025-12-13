@@ -1,12 +1,12 @@
 local lib = {}
 
 local playerPred = require("Features.Aimbot.Proj.playersim")
-local projPred = require("Features.Aimbot.Proj.projectilesim")
+--local projPred = require("Features.Aimbot.Proj.projectilesim")
 local projectileInfo = require("Features.Aimbot.Proj.projectileinfo")
 
-local inputlib = require("SDK.input")
-local mathlib = require("SDK.math")
-local playerWrapper = require("SDK.wrappers.player")
+local SDK = require("SDK.sdk")
+local mathlib = SDK.GetMathLib()
+local inputlib = SDK.GetInputLib()
 
 ---@param startPos Vector3
 ---@param targetPos Vector3
@@ -68,7 +68,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	end
 
 	local entitylist = entities.FindByClass("CTFPlayer")
-	local lp = playerWrapper.Get(plocal)
+	local lp = SDK.AsPlayer(plocal)
 
 	local viewangle = engine.GetViewAngles()
 	local forward = viewangle:Forward()
@@ -87,7 +87,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 
 	for _, player in pairs (entitylist) do
 		if player:GetTeamNumber() ~= localTeam and player:IsAlive() and player:IsDormant() == false then
-			local center = playerWrapper.Get(player):GetWorldSpaceCenter()
+			local center = SDK.AsPlayer(player):GetWorldSpaceCenter()
 			local dir = (center - localPos)
 
 			local distance = dir:Length()
@@ -127,22 +127,29 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	local gravity = 400 * info:GetGravity(charge)
 	local autoshoot = data.aimbot.proj.autoshoot
 
-	local attacking = cmd.buttons & IN_ATTACK ~= 0
-	local canshoot = weapon:CanShoot(cmd)
-	
+	local attacking = false
+	local canshoot = weapon:CanShootPrimary(cmd)
+
 	local trace, mask = nil, info.m_iTraceMask
 	local mins, maxs = info.m_vecMins, info.m_vecMaxs
 	local hasGravity = info.m_bHasGravity
+	local dmgRadius = info.m_flDamageRadius
 
 	for _, target in ipairs (validTargets) do
-		local distance = (localPos - playerWrapper.Get(target[1]):GetWorldSpaceCenter()):Length()
+		local distance = (localPos - SDK.AsPlayer(target[1]):GetWorldSpaceCenter()):Length()
+		if data.aimbot.proj.selfdamage == false and distance <= dmgRadius then
+			goto skip
+		end
+
 		local time = (distance/speed)
 		if time > data.aimbot.proj.maxsimtime then
 			goto skip
 		end
 
 		local _, targetPos = playerPred(target[1], time, 3)
-		targetPos = targetPos + Vector3(0, 0, 5)
+		local drop = gravity * 2 * time^2
+		targetPos = targetPos + Vector3(0, 0, drop)
+
 		local angle = mathlib.SolveBallisticArc(localPos, targetPos, speed, gravity)
 		if angle then
 			if hasGravity then
@@ -171,7 +178,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 				end
 			end
 
-			if attacking and canshoot then
+			if attacking then
 				cmd.viewangles = angle
 				cmd.sendpacket = false
 			end

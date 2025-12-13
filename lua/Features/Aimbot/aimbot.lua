@@ -4,7 +4,7 @@ local weaponlib = require("SDK.weapons")]]
 local hitscan = require("Features.Aimbot.Hitscan.hitscan")
 local projectile = require("Features.Aimbot.Proj.main")
 
-local weaponWrapper = require("SDK.wrappers.weapon")
+local SDK = require("SDK.sdk")
 
 local lib = {}
 
@@ -41,7 +41,7 @@ function lib.Run(cmd, data)
 		return
 	end
 
-	local weapon = weaponWrapper.Get(m_hActiveWeapon)
+	local weapon = SDK.AsWeapon(m_hActiveWeapon)
 
 	if weapon:GetWeaponProjectileType() == E_ProjectileType.TF_PROJECTILE_BULLET then
 		hitscan.Run(cmd, plocal, weapon, data, state)

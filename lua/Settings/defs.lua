@@ -20,6 +20,7 @@
 ---@field autoshoot boolean
 ---@field key string
 ---@field maxsimtime number
+---@field selfdamage boolean
 
 ---@class Melee
 ---@field enabled boolean
@@ -29,11 +30,12 @@
 ---@field stencil integer
 ---@field blurriness integer
 ---@field enabled boolean
----@field weapon boolean
----@field players boolean
----@field sentries boolean
----@field dispensers boolean
----@field teleporters boolean
----@field medammo boolean
----@field viewmodel boolean
----@field christmasball boolean
+---@field flags integer
+----@field weapon boolean
+----@field players boolean
+----@field sentries boolean
+----@field dispensers boolean
+----@field teleporters boolean
+----@field medammo boolean
+----@field viewmodel boolean
+----@field christmasball boolean
