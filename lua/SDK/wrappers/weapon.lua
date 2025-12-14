@@ -8,9 +8,13 @@ local WEAPON_NOCLIP = -1
 local Weapon = {}
 Weapon.__index = Weapon
 
----@param entity Entity
----@return Weapon
+---@param entity Entity?
+---@return Weapon?
 function Weapon.Get(entity)
+	if entity == nil then
+		return nil
+	end
+
 	local this = {__handle = entity}
 	setmetatable(this, Weapon)
 	return this
@@ -56,22 +60,32 @@ end
 function Weapon:HasPrimaryAmmoForShot()
 	local iClip = self:m_iClip1()
 	local owner = playerWrapper.Get(self:m_hOwner())
+	if owner == nil then
+		return false
+	end
+
 	return (iClip == WEAPON_NOCLIP and owner:GetAmmoCount(self:m_iPrimaryAmmoType()) or iClip) >= self:GetAmmoPerShot()
 end
 
 function Weapon:CanPrimaryAttack()
 	local owner = self:m_hOwner()
 	local player = playerWrapper.Get(owner)
+	if player == nil then
+		return false
+	end
 
 	local curtime = player:m_nTickBase() * globals.TickInterval()
 	return self:m_flNextPrimaryAttack() <= curtime and player:m_flNextAttack() <= curtime
 end
 
 function Weapon:CanSecondaryAttack()
-	local owner = self:m_hOwner()
-	local player = playerWrapper.Get(owner)
-	local curtime = player:m_nTickBase() * globals.TickInterval()
-	return self:m_flNextSecondaryAttack() <= curtime and player:m_flNextAttack() <= curtime
+	local owner = playerWrapper.Get(self:m_hOwner())
+	if owner == nil then
+		return false
+	end
+
+	local curtime = owner:m_nTickBase() * globals.TickInterval()
+	return self:m_flNextSecondaryAttack() <= curtime and owner:m_flNextAttack() <= curtime
 end
 
 function Weapon:IsMeleeWeapon()
@@ -121,6 +135,7 @@ function Weapon:m_iItemDefinitionIndex()
 end
 
 function Weapon:GetCurrentCharge()
+	--- WARNING: CanCharge() will crash your game with a Rocket Launcher!
 	return self.__handle:CanCharge() and self.__handle:GetCurrentCharge() or 0
 end
 

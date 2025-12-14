@@ -8,6 +8,11 @@ local SDK = require("SDK.sdk")
 local mathlib = SDK.GetMathLib()
 local inputlib = SDK.GetInputLib()
 
+---@param weapon Weapon
+local function GetPositionOffset(weapon)
+
+end
+
 ---@param startPos Vector3
 ---@param targetPos Vector3
 ---@param angle EulerAngles
@@ -69,6 +74,9 @@ function lib.Run(cmd, plocal, weapon, data, state)
 
 	local entitylist = entities.FindByClass("CTFPlayer")
 	local lp = SDK.AsPlayer(plocal)
+	if lp == nil then
+		return
+	end
 
 	local viewangle = engine.GetViewAngles()
 	local forward = viewangle:Forward()
@@ -117,17 +125,9 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	end)
 
 	local charge = info.m_bCharges and weapon:GetCurrentCharge() or 0
-	if info.m_bCharges then
-		if charge == 0 then
-			cmd.buttons = cmd.buttons | IN_ATTACK
-		end
-	end
-
 	local speed = info:GetVelocity(charge):Length2D()
 	local gravity = 400 * info:GetGravity(charge)
 	local autoshoot = data.aimbot.proj.autoshoot
-
-	local canshoot = weapon:CanShootPrimary(cmd)
 
 	local trace, mask = nil, info.m_iTraceMask
 	local mins, maxs = info.m_vecMins, info.m_vecMaxs
@@ -148,8 +148,11 @@ function lib.Run(cmd, plocal, weapon, data, state)
 		end
 
 		local _, targetPos = playerPred(target[1], time, 3)
-		local drop = gravity * 2 * time^2
-		targetPos = targetPos + Vector3(0, 0, drop)
+
+		if hasGravity then
+			local drop = gravity * 2 * time^2
+			targetPos.z = targetPos.z + drop
+		end
 
 		local angle = mathlib.SolveBallisticArc(localPos, targetPos, speed, gravity)
 		if angle then
@@ -179,19 +182,21 @@ function lib.Run(cmd, plocal, weapon, data, state)
 		return
 	end
 
+	if info.m_bCharges then
+		if charge < 0.01 then
+			cmd.buttons = cmd.buttons | IN_ATTACK
+			cmd.sendpacket = true
+			return
+		end
+	end
+
 	--- this is really fucking buggy
 	--- doesn't work right with chargeable weapons (huntsman, stickybomb launcher, etc)
 	if autoshoot then
-		if info.m_bCharges == false and weapon:CanPrimaryAttack() then
+		if info.m_bCharges == false then
 			cmd.buttons = cmd.buttons | IN_ATTACK
 		elseif info.m_bCharges then
-			if charge == 0 then
-				if weapon:CanPrimaryAttack() then
-					cmd.buttons = cmd.buttons | IN_ATTACK
-					cmd.sendpacket = true
-				end
-				return
-			end
+			cmd.buttons = cmd.buttons & ~IN_ATTACK
 		end
 	end
 

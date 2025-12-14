@@ -18,13 +18,17 @@ function aim.Run(cmd, plocal, weapon, data, state)
 		return
 	end
 
+	local lp = SDK.AsPlayer(plocal)
+	if lp == nil then
+		return
+	end
+
 	local entitylist = entities.FindByClass("CTFPlayer")
 
 	local viewangle = engine.GetViewAngles()
 	local forward = viewangle:Forward()
 	mathlib.NormalizeVector(forward)
 
-	local lp = SDK.AsPlayer(plocal)
 	local localPos = lp:GetEyePos()
 	local localTeam = plocal:GetTeamNumber()
 	local localIndex = plocal:GetIndex()
@@ -68,7 +72,7 @@ function aim.Run(cmd, plocal, weapon, data, state)
 	end)
 
 	for _, target in ipairs (validTargets) do
-		if data.aimbot.hitscan.autoshoot and weapon:CanPrimaryAttack() then
+		if data.aimbot.hitscan.autoshoot then
 			cmd.buttons = cmd.buttons | IN_ATTACK
 		end
 

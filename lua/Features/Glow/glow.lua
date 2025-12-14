@@ -221,7 +221,6 @@ function lib.Run(settings)
 
 	local flags = settings.glow.flags
 	local enabled = flags & (1 << 0) ~= 0
-	--print(enabled)
 
 	if enabled == false then
 		return

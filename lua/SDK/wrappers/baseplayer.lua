@@ -4,9 +4,13 @@
 local BasePlayer = {}
 BasePlayer.__index = BasePlayer
 
----@param entity Entity
----@return BasePlayer
+---@param entity Entity?
+---@return BasePlayer?
 function BasePlayer.Get(entity)
+	if entity == nil then
+		return nil
+	end
+
 	local this = {__handle = entity}
 	setmetatable(this, BasePlayer)
 	return this

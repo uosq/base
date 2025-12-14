@@ -19,20 +19,20 @@ local bFiring, bLoading = false, false
 
 local sdk = {}
 
----@param entity Entity
----@return Player
+---@param entity Entity?
+---@return Player?
 function sdk.AsPlayer(entity)
 	return playerWrap.Get(entity)
 end
 
----@param entity Entity
----@return BasePlayer
+---@param entity Entity?
+---@return BasePlayer?
 function sdk.AsBasePlayer(entity)
 	return basePlayerWrap.Get(entity)
 end
 
----@param entity Entity
----@return Weapon
+---@param entity Entity?
+---@return Weapon?
 function sdk.AsWeapon(entity)
 	return weaponWrap.Get(entity)
 end
@@ -71,7 +71,7 @@ function sdk.IsAttacking(plocal, weapon, cmd)
 	end
 
 	local useTickBase = engine.GetServerIP() ~= "loopback"
-	local iTickBase = useTickBase and globals.TickCount() or plocal:m_nTickBase()
+	local iTickBase = useTickBase and cmd.tick_count or plocal:m_nTickBase()
 
 	if weapon:GetSlot() == E_LoadoutSlot.LOADOUT_POSITION_MELEE then
 		local weaponID = weapon:GetWeaponID()
@@ -122,7 +122,7 @@ function sdk.IsAttacking(plocal, weapon, cmd)
 	if weaponID == TF_WEAPON_CANNON then
 		local mortar = weapon:AttributeHookFloat("grenade_launcher_mortar_mode", 0)
 		if mortar ~= 0 then
-			return (weapon:CanPrimaryAttack() and cmd.buttons & IN_ATTACK ~= 0) and true or (weapon:m_iReloadMode() == 0 and cmd.buttons & IN_ATTACK ~= 0) and true or false
+			return (weapon:CanPrimaryAttack() and cmd.buttons & IN_ATTACK ~= 0)
 		end
 
 		local charge = weapon:GetCurrentCharge()
@@ -166,7 +166,7 @@ function sdk.IsAttacking(plocal, weapon, cmd)
 		if state == EMinigunState.AC_STATE_FIRING
 		or state == EMinigunState.AC_STATE_SPINNING then
 			if weapon:HasPrimaryAmmoForShot() then
-				return (weapon:CanPrimaryAttack() and cmd.buttons & IN_ATTACK ~= 0) and true or (weapon:m_iReloadMode() == 0 and cmd.buttons & IN_ATTACK ~= 0) and true or false
+				return (weapon:CanPrimaryAttack() and cmd.buttons & IN_ATTACK ~= 0)
 			end
 		end
 
@@ -174,7 +174,7 @@ function sdk.IsAttacking(plocal, weapon, cmd)
 		return not (weapon:HasPrimaryAmmoForShot() and cmd.buttons & IN_ATTACK ~= 0)
 	end
 
-	if weaponID == E_WeaponBaseID.TF_WEAPON_LUNCHBOX then
+	if weaponID == TF_WEAPON_LUNCHBOX then
 		if weapon:CanSecondaryAttack() and weapon:HasPrimaryAmmoForShot() and cmd.buttons & IN_ATTACK2 ~= 0 then
 			return true
 		end
@@ -182,7 +182,7 @@ function sdk.IsAttacking(plocal, weapon, cmd)
 		return false
 	end
 
-	if weaponID == E_WeaponBaseID.TF_WEAPON_FLAMETHROWER then
+	if weaponID == TF_WEAPON_FLAMETHROWER then
 		if weapon:AttributeHookInt("set_charged_airblast", 0) == 0 and weapon:CanSecondaryAttack() and cmd.buttons & IN_ATTACK2 ~= 0 then
 			return true
 		end
@@ -209,7 +209,7 @@ function sdk.IsAttacking(plocal, weapon, cmd)
 		if ((bFiring or (bLoading and (cmd.buttons & IN_ATTACK == 0))) and bAmmo ~= 0) then
 			bFiring = true
 			bLoading = false
-			return weapon:CanPrimaryAttack() and true or weapon:m_iReloadMode() == 0 and true or false
+			return weapon:CanPrimaryAttack()
 		end
 
 		return false
@@ -217,8 +217,7 @@ function sdk.IsAttacking(plocal, weapon, cmd)
 
 --- wtf does this 2 mean?
 --- return G::CanPrimaryAttack && pCmd->buttons & IN_ATTACK ? 1 : G::Reloading && pCmd->buttons & IN_ATTACK ? 2 : 0;
-
-	return (weapon:CanPrimaryAttack() and cmd.buttons & IN_ATTACK ~= 0) and true or (weapon:m_iReloadMode() == 0 and cmd.buttons & IN_ATTACK ~= 0) and true or false
+	return (weapon:CanShootPrimary(cmd) and cmd.buttons & IN_ATTACK ~= 0)
 end
 
 return sdk

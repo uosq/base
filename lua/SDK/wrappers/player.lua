@@ -4,9 +4,13 @@
 local Player = {}
 Player.__index = Player
 
----@param entity Entity
----@return Player
+---@param entity Entity?
+---@return Player?
 function Player.Get(entity)
+	if entity == nil then
+		return nil
+	end
+
 	local this = {__handle = entity}
 	setmetatable(this, Player)
 	return this
@@ -43,7 +47,7 @@ function Player:GetHandle()
 	return self.__handle
 end
 
---[[function Player:m_bIsABot()
+function Player:m_bIsABot()
 	return self.__handle:GetPropBool("m_bIsABot")
 end
 
@@ -385,7 +389,7 @@ function Player:m_bIsTargetedForPasstimePass()
 end
 
 function Player:m_hPasstimePassTarget()
-	return self.__handle:GetPropInt("m_Shared", "m_hPasstimePassTarget")
+	return self.__handle:GetPropEntity("m_Shared", "m_hPasstimePassTarget")
 end
 
 function Player:m_askForBallTime()
@@ -603,6 +607,6 @@ end
 
 function Player:m_bRegenerating()
 	return self.__handle:GetPropInt("m_bRegenerating")
-end]]
+end
 
 return Player

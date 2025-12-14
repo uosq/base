@@ -3,6 +3,10 @@ local settings = require("Settings.settings")
 local angleManager = require("SDK.angleMgr")
 
 local function OnFrameStageNotify(stage)
+	if clientstate.GetClientSignonState() <= E_SignonState.SIGNONSTATE_SPAWN then
+		return
+	end
+
 	if stage == E_ClientFrameStage.FRAME_START then
 		if settings.ShouldUnload() then
 			printc(255, 150, 150, 255, "Base - Failed to get settings, unloading...")

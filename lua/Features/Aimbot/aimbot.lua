@@ -42,6 +42,9 @@ function lib.Run(cmd, data)
 	end
 
 	local weapon = SDK.AsWeapon(m_hActiveWeapon)
+	if weapon:CanShootPrimary(cmd) == false then
+		return
+	end
 
 	if weapon:GetWeaponProjectileType() == E_ProjectileType.TF_PROJECTILE_BULLET then
 		hitscan.Run(cmd, plocal, weapon, data, state)

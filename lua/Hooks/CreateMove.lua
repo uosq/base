@@ -7,6 +7,10 @@ local SDK = require("SDK.sdk")
 
 ---@param cmd UserCmd
 local function OnCreateMove(cmd)
+	if clientstate.GetClientSignonState() <= E_SignonState.SIGNONSTATE_SPAWN then
+		return
+	end
+
 	if settings.GetStatus() == false then
 		return
 	end
