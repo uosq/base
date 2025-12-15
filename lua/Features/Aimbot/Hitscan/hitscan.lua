@@ -16,14 +16,14 @@ local function GetShootPosition(plocal, target, weapon)
 	local weaponID = weapon:GetWeaponID()
 	if weaponID == TF_WEAPON_REVOLVER then
 		if weapon:IsAmbassador() and weapon:CanAmbassadorHeadshot() then
-			local headPosition = target:GetBonePosition(boneIndexes.Head)
+			local headPosition = target:GetBonePosition(boneIndexes.Head) + Vector3(0, 0, 5)
 			return headPosition
 		end
 	end
 
 	if weaponID == TF_WEAPON_SNIPERRIFLE or weaponID == TF_WEAPON_SNIPERRIFLE_DECAP then
 		if plocal:InCond(TFCond_Zoomed) then
-			return target:GetBonePosition(boneIndexes.Head)
+			return target:GetBonePosition(boneIndexes.Head) + Vector3(0, 0, 5)
 		end
 	end
 
@@ -50,9 +50,7 @@ function aim.Run(cmd, plocal, weapon, data, state)
 	local forward = viewangle:Forward()
 	mathlib.NormalizeVector(forward)
 
-	local eyePosOffset = plocal:GetEyePosOffset()
-	local path = playersim(plocal:GetHandle(), globals.TickInterval(), 1.0)
-	local localPos = path[#path] + eyePosOffset
+	local localPos = plocal:GetEyePos()
 	local localTeam = plocal:GetTeamNumber()
 	local localIndex = plocal:GetIndex()
 
@@ -61,16 +59,16 @@ function aim.Run(cmd, plocal, weapon, data, state)
 
 	local maxFov = data.aimbot.hitscan.fov
 
+	local latency = clientstate.GetNetChannel():GetLatency(E_Flows.FLOW_INCOMING)
 	local trace
 
 	for _, entity in pairs (entitylist) do
 		if entity:GetTeamNumber() ~= localTeam and entity:IsAlive() and entity:IsDormant() == false then
 			local player = SDK.AsPlayer(entity)
 			if player then
-				local center = GetShootPosition(plocal, player, weapon) --SDK.AsPlayer(player):GetWorldSpaceCenter()
-				if center then
-					center.z = center.z + 6 --- very stupid hack
-					local dir = (center - localPos)
+				local shootPos = GetShootPosition(plocal, player, weapon)
+				if shootPos then
+					local dir = (shootPos - localPos)
 
 					local distance = dir:Length()
 					mathlib.NormalizeVector(dir)
@@ -79,7 +77,7 @@ function aim.Run(cmd, plocal, weapon, data, state)
 					local fovDeg = math.deg(math.acos(dot))
 
 					if distance <= 2048 and fovDeg <= maxFov then
-						trace = engine.TraceLine(localPos, center, MASK_SHOT_HULL, function (ent, contentsMask)
+						trace = engine.TraceLine(localPos, shootPos, MASK_SHOT_HULL, function (ent, contentsMask)
 							return ent:GetIndex() ~= localIndex and ent:GetIndex() ~= entity:GetIndex()
 						end)
 

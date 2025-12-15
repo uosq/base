@@ -36,6 +36,17 @@ function Player:GetBonePosition(boneIndex)
 	return Vector3(boneMatrix[1][4], boneMatrix[2][4], boneMatrix[3][4])
 end
 
+---@param boneIndex BoneIndex
+---@return Vector3?
+function Player:GetBonePositionOffset(boneIndex)
+	local bonePos = self:GetBonePosition(boneIndex)
+	if bonePos == nil then
+		return nil
+	end
+
+	return bonePos - self:GetAbsOrigin()
+end
+
 function Player:GetMins()
 	return self.__handle:GetMins()
 end

@@ -5,6 +5,7 @@ local hitscan = require("Features.Aimbot.Hitscan.hitscan")
 local projectile = require("Features.Aimbot.Proj.main")
 
 local SDK = require("SDK.sdk")
+local chokeManager = SDK.GetChokedLib()
 
 local lib = {}
 

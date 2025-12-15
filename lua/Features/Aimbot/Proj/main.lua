@@ -94,8 +94,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	local forward = viewangle:Forward()
 	mathlib.NormalizeVector(forward)
 
-	local localPath = playerPred(plocal:GetHandle(), globals.TickInterval(), 1.0)
-	local localPos = localPath[#localPath] + plocal:GetEyePosOffset()
+	local localPos = plocal:GetEyePos()
 	local localTeam = plocal:GetTeamNumber()
 	--local localIndex = plocal:GetIndex()
 
