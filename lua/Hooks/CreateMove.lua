@@ -1,9 +1,9 @@
 local aimbot = require("Features.Aimbot.aimbot")
-local settings = require("Settings.settings")
---local hookManager = require("SDK.hookMgr")
-local angleManager = require("SDK.angleMgr")
-
 local SDK = require("SDK.sdk")
+local settings = SDK.GetSettingsManager()
+--local hookManager = require("SDK.hookMgr")
+local angleManager = SDK.GetAngleManager()
+local chokedManager = SDK.GetChokedLib()
 
 ---@param cmd UserCmd
 local function OnCreateMove(cmd)
@@ -16,10 +16,14 @@ local function OnCreateMove(cmd)
 	end
 
 	local data = settings.Get()
+
 	aimbot.Run(cmd, data)
 
 	if cmd.sendpacket then
 		angleManager.SetAngle(cmd.viewangles)
+		chokedManager:ResetChoked()
+	else
+		chokedManager:AddChoked()
 	end
 end
 

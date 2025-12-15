@@ -1,16 +1,28 @@
 local lib = {}
 
-local playerPred = require("Features.Aimbot.Proj.playersim")
+local playerPred = require("SDK.prediction.playersim")
 --local projPred = require("Features.Aimbot.Proj.projectilesim")
 local projectileInfo = require("Features.Aimbot.Proj.projectileinfo")
 
 local SDK = require("SDK.sdk")
 local mathlib = SDK.GetMathLib()
 local inputlib = SDK.GetInputLib()
+local chokedManager = SDK.GetChokedLib()
 
+---@param plocal Player
 ---@param weapon Weapon
-local function GetPositionOffset(weapon)
+local function GetPositionOffset(plocal, weapon)
+	local weaponID = weapon:GetWeaponID()
+	if weaponID == E_WeaponBaseID.TF_WEAPON_ROCKETLAUNCHER
+	or weaponID == E_WeaponBaseID.TF_WEAPON_DIRECTHIT then
+		return 10
+	end
 
+	if weaponID == E_WeaponBaseID.TF_WEAPON_COMPOUND_BOW then
+		return plocal:GetMaxs().z * 0.8
+	end
+
+	return plocal:GetMaxs().z * 0.5
 end
 
 ---@param startPos Vector3
@@ -55,7 +67,7 @@ end
 
 ---@param cmd UserCmd
 ---@param data Settings
----@param plocal Entity
+---@param plocal Player
 ---@param weapon Weapon
 ---@param state AimbotState
 function lib.Run(cmd, plocal, weapon, data, state)
@@ -72,17 +84,18 @@ function lib.Run(cmd, plocal, weapon, data, state)
 		return
 	end
 
-	local entitylist = entities.FindByClass("CTFPlayer")
-	local lp = SDK.AsPlayer(plocal)
-	if lp == nil then
+	if chokedManager:GetChoked() > 0 then
 		return
 	end
+
+	local entitylist = entities.FindByClass("CTFPlayer")
 
 	local viewangle = engine.GetViewAngles()
 	local forward = viewangle:Forward()
 	mathlib.NormalizeVector(forward)
 
-	local localPos = lp:GetEyePos()
+	local localPath = playerPred(plocal:GetHandle(), globals.TickInterval(), 1.0)
+	local localPos = localPath[#localPath] + plocal:GetEyePosOffset()
 	local localTeam = plocal:GetTeamNumber()
 	--local localIndex = plocal:GetIndex()
 
@@ -94,7 +107,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	--local trace
 
 	for _, player in pairs (entitylist) do
-		if player:GetTeamNumber() ~= localTeam and player:IsAlive() and player:IsDormant() == false then
+		if player:GetTeamNumber() ~= localTeam and player:IsAlive() and player:IsDormant() == false and player:InCond(E_TFCOND.TFCond_Cloaked) == false then
 			local center = SDK.AsPlayer(player):GetWorldSpaceCenter()
 			local dir = (center - localPos)
 
@@ -136,6 +149,8 @@ function lib.Run(cmd, plocal, weapon, data, state)
 
 	local validTarget, validAngle = nil, nil
 
+	local weaponOffset = GetPositionOffset(plocal, weapon)
+
 	for _, target in ipairs (validTargets) do
 		local distance = (localPos - SDK.AsPlayer(target[1]):GetWorldSpaceCenter()):Length()
 		if data.aimbot.proj.selfdamage == false and distance <= dmgRadius then
@@ -149,8 +164,10 @@ function lib.Run(cmd, plocal, weapon, data, state)
 
 		local _, targetPos = playerPred(target[1], time, 3)
 
+		targetPos.z = targetPos.z + weaponOffset
+
 		if hasGravity then
-			local drop = gravity * 2 * time^2
+			local drop = gravity * time^2
 			targetPos.z = targetPos.z + drop
 		end
 
@@ -182,27 +199,24 @@ function lib.Run(cmd, plocal, weapon, data, state)
 		return
 	end
 
-	if info.m_bCharges then
-		if charge < 0.01 then
-			cmd.buttons = cmd.buttons | IN_ATTACK
-			cmd.sendpacket = true
-			return
-		end
-	end
-
 	--- this is really fucking buggy
 	--- doesn't work right with chargeable weapons (huntsman, stickybomb launcher, etc)
 	if autoshoot then
-		if info.m_bCharges == false then
+		if weapon:CanPrimaryAttack() then
 			cmd.buttons = cmd.buttons | IN_ATTACK
-		elseif info.m_bCharges then
-			cmd.buttons = cmd.buttons & ~IN_ATTACK
+			if info.m_bCharges and charge > 0 then
+				cmd.buttons = cmd.buttons & ~IN_ATTACK
+			end
 		end
 	end
 
-	if SDK.IsAttacking(lp, weapon, cmd) then
+	if SDK.IsAttacking(plocal, weapon, cmd) then
 		cmd.viewangles = validAngle
 		cmd.sendpacket = false
+
+		--[[if info.m_bCharges then
+			cmd.buttons = cmd.buttons & ~IN_ATTACK
+		end]]
 	end
 
 	state.target = validTarget

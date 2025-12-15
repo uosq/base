@@ -4,8 +4,34 @@ local SDK = require("SDK.sdk")
 local mathlib = SDK.GetMathLib()
 local inputlib = SDK.GetInputLib()
 
+local boneIndexes = SDK.GetBoneIndexEnum()
+
+local playersim = SDK.GetPlayerSim()
+
+---@param plocal Player
+---@param target Player
+---@param weapon Weapon
+---@return Vector3?
+local function GetShootPosition(plocal, target, weapon)
+	local weaponID = weapon:GetWeaponID()
+	if weaponID == TF_WEAPON_REVOLVER then
+		if weapon:IsAmbassador() and weapon:CanAmbassadorHeadshot() then
+			local headPosition = target:GetBonePosition(boneIndexes.Head)
+			return headPosition
+		end
+	end
+
+	if weaponID == TF_WEAPON_SNIPERRIFLE or weaponID == TF_WEAPON_SNIPERRIFLE_DECAP then
+		if plocal:InCond(TFCond_Zoomed) then
+			return target:GetBonePosition(boneIndexes.Head)
+		end
+	end
+
+	return target:GetWorldSpaceCenter()
+end
+
 ---@param cmd UserCmd
----@param plocal Entity
+---@param plocal Player
 ---@param data Settings
 ---@param weapon Weapon
 ---@param state AimbotState
@@ -18,18 +44,15 @@ function aim.Run(cmd, plocal, weapon, data, state)
 		return
 	end
 
-	local lp = SDK.AsPlayer(plocal)
-	if lp == nil then
-		return
-	end
-
 	local entitylist = entities.FindByClass("CTFPlayer")
 
 	local viewangle = engine.GetViewAngles()
 	local forward = viewangle:Forward()
 	mathlib.NormalizeVector(forward)
 
-	local localPos = lp:GetEyePos()
+	local eyePosOffset = plocal:GetEyePosOffset()
+	local path = playersim(plocal:GetHandle(), globals.TickInterval(), 1.0)
+	local localPos = path[#path] + eyePosOffset
 	local localTeam = plocal:GetTeamNumber()
 	local localIndex = plocal:GetIndex()
 
@@ -40,24 +63,30 @@ function aim.Run(cmd, plocal, weapon, data, state)
 
 	local trace
 
-	for _, player in pairs (entitylist) do
-		if player:GetTeamNumber() ~= localTeam and player:IsAlive() and player:IsDormant() == false then
-			local center = SDK.AsPlayer(player):GetWorldSpaceCenter()
-			local dir = (center - localPos)
+	for _, entity in pairs (entitylist) do
+		if entity:GetTeamNumber() ~= localTeam and entity:IsAlive() and entity:IsDormant() == false then
+			local player = SDK.AsPlayer(entity)
+			if player then
+				local center = GetShootPosition(plocal, player, weapon) --SDK.AsPlayer(player):GetWorldSpaceCenter()
+				if center then
+					center.z = center.z + 6 --- very stupid hack
+					local dir = (center - localPos)
 
-			local distance = dir:Length()
-			mathlib.NormalizeVector(dir)
+					local distance = dir:Length()
+					mathlib.NormalizeVector(dir)
 
-			local dot = forward:Dot(dir)
-			local fovDeg = math.deg(math.acos(dot))
+					local dot = forward:Dot(dir)
+					local fovDeg = math.deg(math.acos(dot))
 
-			if distance <= 2048 and fovDeg <= maxFov then
-				trace = engine.TraceLine(localPos, center, MASK_SHOT_HULL, function (ent, contentsMask)
-					return ent:GetIndex() ~= localIndex and ent:GetIndex() ~= player:GetIndex()
-				end)
+					if distance <= 2048 and fovDeg <= maxFov then
+						trace = engine.TraceLine(localPos, center, MASK_SHOT_HULL, function (ent, contentsMask)
+							return ent:GetIndex() ~= localIndex and ent:GetIndex() ~= entity:GetIndex()
+						end)
 
-				if trace.fraction == 1.0 then
-					validTargets[#validTargets+1] = {dir, fovDeg, player}
+						if trace.fraction == 1.0 then
+							validTargets[#validTargets+1] = {dir, fovDeg, entity}
+						end
+					end
 				end
 			end
 		end
@@ -72,17 +101,20 @@ function aim.Run(cmd, plocal, weapon, data, state)
 	end)
 
 	for _, target in ipairs (validTargets) do
-		if data.aimbot.hitscan.autoshoot then
-			cmd.buttons = cmd.buttons | IN_ATTACK
-		end
+		local player = SDK.AsPlayer(target[3])
+		if player and weapon:CanHit(player) then
+			if data.aimbot.hitscan.autoshoot and weapon:CanPrimaryAttack() then
+				cmd.buttons = cmd.buttons | IN_ATTACK
+			end
 
-		if SDK.IsAttacking(lp, weapon, cmd) then
-			local angle = mathlib.DirectionToAngles(target[1])
-			cmd.viewangles = angle
-		end
+			if SDK.IsAttacking(plocal, weapon, cmd) then
+				local angle = mathlib.DirectionToAngles(target[1])
+				cmd.viewangles = angle
+			end
 
-		state.target = target[3]
-		return
+			state.target = target[3]
+			return
+		end
 	end
 end
 

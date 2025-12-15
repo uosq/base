@@ -2,7 +2,9 @@
 --local hookManager = require("SDK.hookMgr")
 
 local function OnDraw()
-	--print("Draw")
+	if clientstate.GetClientSignonState() <= E_SignonState.SIGNONSTATE_SPAWN then
+		return
+	end
 end
 
 callbacks.Register("Draw", OnDraw)

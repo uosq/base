@@ -1,6 +1,7 @@
 local playerWrapper = require("SDK.wrappers.player")
 
 local WEAPON_NOCLIP = -1
+local SYDNEY_SLEEPER = 230
 
 ---@class Weapon
 ---@field private __handle Entity
@@ -134,9 +135,23 @@ function Weapon:m_iItemDefinitionIndex()
 	return self.__handle:GetPropInt("m_Item", "m_iItemDefinitionIndex")
 end
 
+---@return number?
 function Weapon:GetCurrentCharge()
 	--- WARNING: CanCharge() will crash your game with a Rocket Launcher!
-	return self.__handle:CanCharge() and self.__handle:GetCurrentCharge() or 0
+	--- I have to find another way
+	--- This doesn't work right with Loose Cannon
+	if self.__handle:CanCharge() then
+		local maxtime = self.__handle:GetChargeMaxTime()
+		local begintime = self.__handle:GetChargeBeginTime()
+		local diff = globals.CurTime() - begintime
+		if diff > maxtime then
+			return 0
+		end
+
+		return diff/maxtime
+	end
+
+	return nil
 end
 
 function Weapon:GetHandle()
@@ -182,6 +197,61 @@ function Weapon:m_iWeaponState()
 	end
 
 	return 0
+end
+
+function Weapon:get_weapon_mode_float()
+	return self.__handle:AttributeHookFloat("set_weapon_mode", 0.0)
+end
+
+function Weapon:get_weapon_mode_int()
+	return self.__handle:AttributeHookInt("set_weapon_mode", 0)
+end
+
+function Weapon:IsAmbassador()
+	return self:GetWeaponID() == TF_WEAPON_REVOLVER and self:get_weapon_mode_float() == 1.0
+end
+
+function Weapon:CanAmbassadorHeadshot()
+	if self:IsAmbassador() then
+		return (globals.CurTime() - self:m_flLastFireTime()) > 1.0
+	end
+
+	return false
+end
+
+function Weapon:IsHitscan()
+	return self:GetWeaponProjectileType() == E_ProjectileType.TF_PROJECTILE_BULLET
+end
+
+function Weapon:IsProjectileWeapon()
+	return self:IsHitscan() == false and self:IsMeleeWeapon() == false
+end
+
+---@param player Player
+function Weapon:CanHit(player)
+	local m_hOwner = self:m_hOwner()
+	if m_hOwner == nil then
+		return false
+	end
+
+	if m_hOwner:GetTeamNumber() == player:GetTeamNumber() then
+		local weaponID = self:GetWeaponID()
+		if weaponID == TF_WEAPON_MEDIGUN then
+			return true
+		end
+
+		if weaponID == TF_WEAPON_LUNCHBOX then
+			return true
+		end
+
+		if self:m_iItemDefinitionIndex() == SYDNEY_SLEEPER and player:InCond(TFCond_OnFire) then
+			return true
+		end
+
+		return false
+	end
+
+	return player:InCond(TFCond_Ubercharged) == false
 end
 
 return Weapon

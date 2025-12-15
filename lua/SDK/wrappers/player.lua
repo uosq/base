@@ -16,6 +16,60 @@ function Player.Get(entity)
 	return this
 end
 
+---@param boneIndex BoneIndex
+---@return Vector3?
+function Player:GetBonePosition(boneIndex)
+	local model = self.__handle:GetModel()
+	local studioHdr = models.GetStudioModel(model)
+	local myHitBoxSet = self.__handle:GetPropInt("m_nHitboxSet")
+	local hitboxSet = studioHdr:GetHitboxSet(myHitBoxSet)
+	local hitboxes = hitboxSet:GetHitboxes()
+	local hitbox = hitboxes[boneIndex]
+	local bone = hitbox:GetBone()
+
+	local boneMatrices = self.__handle:SetupBones()
+	local boneMatrix = boneMatrices[bone]
+	if boneMatrix == nil then
+		return nil
+	end
+
+	return Vector3(boneMatrix[1][4], boneMatrix[2][4], boneMatrix[3][4])
+end
+
+function Player:GetMins()
+	return self.__handle:GetMins()
+end
+
+function Player:GetMaxs()
+	return self.__handle:GetMaxs()
+end
+
+---@param flags DrawFlags
+function Player:DrawModel(flags)
+	self.__handle:DrawModel(flags)
+end
+
+function Player:GetModelName()
+	return models.GetModelName(self.__handle:GetModel())
+end
+
+---@param condition E_TFCOND
+function Player:InCond(condition)
+	return self.__handle:InCond(condition)
+end
+
+function Player:GetTeamNumber()
+	return self.__handle:GetTeamNumber()
+end
+
+function Player:GetIndex()
+	return self.__handle:GetIndex()
+end
+
+function Player:m_hActiveWeapon()
+	return self.__handle:GetPropEntity("m_hActiveWeapon")
+end
+
 function Player:m_flNextAttack()
 	return self.__handle:GetPropFloat("bcc_localdata", "m_flNextAttack")
 end
@@ -24,6 +78,19 @@ function Player:m_nTickBase()
 	return self.__handle:GetPropInt("m_nTickBase")
 end
 
+function Player:GetHealth()
+	return self.__handle:GetHealth()
+end
+
+function Player:GetMaxUberHealth()
+	return self.__handle:GetMaxBuffedHealth()
+end
+
+function Player:GetEyePosOffset()
+	return self.__handle:GetPropVector("localdata", "m_vecViewOffset[0]")
+end
+
+---@param iAmmoIndex integer
 function Player:GetAmmoCount(iAmmoIndex)
 	if iAmmoIndex == -1 then
 		return 0
@@ -37,6 +104,19 @@ function Player:GetWorldSpaceCenter()
 	local maxs = self.__handle:GetMaxs()
 	local origin = self.__handle:GetAbsOrigin()
 	return origin + (mins + maxs) * 0.5
+end
+
+function Player:GetAbsOrigin()
+	return self.__handle:GetAbsOrigin()
+end
+
+function Player:GetVAngle()
+	return self.__handle:GetVAngles()
+end
+
+---@param vecAngle Vector3
+function Player:SetVAngle(vecAngle)
+	self.__handle:SetVAngles(vecAngle)
 end
 
 function Player:GetEyePos()

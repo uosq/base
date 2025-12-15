@@ -31,18 +31,25 @@ function lib.Run(cmd, data)
 		return
 	end
 
-	local plocal = entities.GetLocalPlayer()
+	if engine.IsChatOpen() or engine.Con_IsVisible() or engine.IsGameUIVisible() then
+		return
+	end
+
+	local plocal = SDK.AsPlayer(entities.GetLocalPlayer())
 	if plocal == nil then
 		return
 	end
 
-	local m_hActiveWeapon = plocal:GetPropEntity("m_hActiveWeapon")
-	if m_hActiveWeapon == nil then
+	if plocal:InCond(E_TFCOND.TFCond_Taunting) then
 		return
 	end
 
-	local weapon = SDK.AsWeapon(m_hActiveWeapon)
-	if weapon:CanShootPrimary(cmd) == false then
+	if plocal:InCond(E_TFCOND.TFCond_HalloweenGhostMode) then
+		return
+	end
+
+	local weapon = SDK.AsWeapon(plocal:m_hActiveWeapon())
+	if weapon == nil then
 		return
 	end
 
@@ -51,6 +58,10 @@ function lib.Run(cmd, data)
 	elseif weapon:IsMeleeWeapon() == false then
 		projectile.Run(cmd, plocal, weapon, data, state)
 	end
+end
+
+function lib.Store()
+	projectile.Store()
 end
 
 return lib

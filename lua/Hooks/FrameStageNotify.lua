@@ -1,6 +1,7 @@
-local settings = require("Settings.settings")
+local SDK = require("SDK.sdk")
+local settings = SDK.GetSettingsManager()
 --local hookManager = require("SDK.hookMgr")
-local angleManager = require("SDK.angleMgr")
+local angleManager = SDK.GetAngleManager()
 
 local function OnFrameStageNotify(stage)
 	if clientstate.GetClientSignonState() <= E_SignonState.SIGNONSTATE_SPAWN then
@@ -20,12 +21,12 @@ local function OnFrameStageNotify(stage)
 	elseif stage == E_ClientFrameStage.FRAME_RENDER_START then
 		local angle = angleManager.GetAngle()
 		if angle then
-			local plocal = entities.GetLocalPlayer()
-			if plocal == nil or plocal:GetPropBool("m_nForceTauntCam") == false then
+			local plocal = SDK.AsPlayer(entities.GetLocalPlayer())
+			if plocal == nil or plocal:m_nForceTauntCam() == 0 then
 				return
 			end
 
-			plocal:SetVAngles(angle)
+			plocal:SetVAngle(angle)
 		end
 	end
 end

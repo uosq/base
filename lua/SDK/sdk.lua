@@ -4,11 +4,17 @@ local basePlayerWrap = require("SDK.wrappers.baseplayer")
 
 local inputlib = require("SDK.input")
 local mathlib = require("SDK.math")
+local chokedlib = require("SDK.chokedcmds")
 
 local angleManager = require("SDK.angleMgr")
+local settingsManager = require("Settings.settings")
 
 local EAmmoType = require("SDK.ammotype")
 local EMinigunState = require("SDK.minigunstate")
+local EBoneIndex = require("SDK.boneindexes")
+
+local playerSimulation = require("SDK.prediction.playersim")
+local projectileSimulation = require("SDK.prediction.projectilesim")
 
 local TF_PARTICLE_MAX_CHARGE_TIME = 2.0
 
@@ -18,6 +24,18 @@ local Throwing = false
 local bFiring, bLoading = false, false
 
 local sdk = {}
+
+function sdk.GetSettingsManager()
+	return settingsManager
+end
+
+function sdk.GetPlayerSim()
+	return playerSimulation
+end
+
+function sdk.GetProjectileSim()
+	return projectileSimulation
+end
 
 ---@param entity Entity?
 ---@return Player?
@@ -53,8 +71,16 @@ function sdk.GetAmmoTypeEnum()
 	return EAmmoType
 end
 
+function sdk.GetBoneIndexEnum()
+	return EBoneIndex
+end
+
 function sdk.UnloadScript()
 	UnloadScript(GetScriptName())
+end
+
+function sdk.GetChokedLib()
+	return chokedlib
 end
 
 --- Source: https://github.com/rei-2/Amalgam/blob/398e61d0948c1a49477caf806a3995ab12efbeff/Amalgam/src/SDK/SDK.cpp#L531
@@ -71,7 +97,7 @@ function sdk.IsAttacking(plocal, weapon, cmd)
 	end
 
 	local useTickBase = engine.GetServerIP() ~= "loopback"
-	local iTickBase = useTickBase and cmd.tick_count or plocal:m_nTickBase()
+	local iTickBase = useTickBase and plocal:m_nTickBase() or cmd.tick_count
 
 	if weapon:GetSlot() == E_LoadoutSlot.LOADOUT_POSITION_MELEE then
 		local weaponID = weapon:GetWeaponID()
@@ -217,7 +243,7 @@ function sdk.IsAttacking(plocal, weapon, cmd)
 
 --- wtf does this 2 mean?
 --- return G::CanPrimaryAttack && pCmd->buttons & IN_ATTACK ? 1 : G::Reloading && pCmd->buttons & IN_ATTACK ? 2 : 0;
-	return (weapon:CanShootPrimary(cmd) and cmd.buttons & IN_ATTACK ~= 0)
+	return (weapon:CanPrimaryAttack() and cmd.buttons & IN_ATTACK ~= 0)
 end
 
 return sdk
