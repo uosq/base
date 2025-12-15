@@ -6,10 +6,11 @@ type Settings struct {
 }
 
 type Aimbot struct {
-	Enabled bool       `json:"enabled"`
-	Hitscan AimHitscan `json:"hitscan"`
-	Proj    AimProj    `json:"proj"`
-	Melee   AimMelee   `json:"melee"`
+	Enabled      bool       `json:"enabled"`
+	FovIndicator bool       `json:"fovindicator"`
+	Hitscan      AimHitscan `json:"hitscan"`
+	Proj         AimProj    `json:"proj"`
+	Melee        AimMelee   `json:"melee"`
 }
 
 type AimHitscan struct {

@@ -4,6 +4,7 @@
 
 ---@class Aimbot
 ---@field enabled boolean
+---@field fovindicator boolean
 ---@field hitscan Hitscan
 ---@field proj Projectile
 ---@field melee Melee

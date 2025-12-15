@@ -42,6 +42,7 @@ func main() {
 
 				CreateToggle("Projectile", &settings.Aimbot.Proj.Enabled),
 				CreateToggle("Autoshoot", &settings.Aimbot.Proj.Autoshoot),
+				CreateToggle("FOV Indicator", &settings.Aimbot.FovIndicator),
 				CreateKeySelection("Key", &settings.Aimbot.Proj.Key),
 				CreateSlider("FOV", &settings.Aimbot.Proj.Fov, 0, 180),
 				CreateSlider("Max Simulation Time", &settings.Aimbot.Proj.MaxSimTime, 0, 5),
