@@ -289,7 +289,7 @@ local function RunSeconds(player, time_seconds, lazyness)
 	local velocity = player:EstimateAbsVelocity() or Vector3()
 	local origin = player:GetAbsOrigin() + Vector3(0, 0, 1)
 
-	if velocity:Length() <= 0.01 then
+	if velocity:Length() <= 10 then
 		path[1] = origin
 		return path, origin, {globals.CurTime()}
 	end
@@ -307,71 +307,23 @@ local function RunSeconds(player, time_seconds, lazyness)
 	local curtime = globals.CurTime()
 	local timetable = {}
 
+	local speed = velocity:Length2D()
+	local wishspeed = math.min(speed, maxspeed)
+
 	while clock < time_seconds do
 		local is_on_ground = CheckIsOnGround(origin, mins, maxs, index)
 
 		Friction(velocity, is_on_ground, tickinterval)
 
 		if is_on_ground then
-			Accelerate(velocity, wishdir, maxspeed, sv_accelerate, tickinterval)
+			if wishspeed > 0 then
+				wishdir = velocity / speed
+				Accelerate(velocity, wishdir, wishspeed, sv_accelerate, tickinterval)
+			end
+
 			velocity.z = 0
 		else
 			AirAccelerate(velocity, wishdir, maxspeed, sv_airaccelerate, tickinterval, 0, player)
-			velocity.z = velocity.z - 800 * tickinterval
-		end
-
-		-- Perform collision-aware movement
-		origin = TryPlayerMove(origin, velocity, mins, maxs, index, tickinterval)
-
-		-- If on ground, stick to it
-		if is_on_ground then
-			StayOnGround(origin, mins, maxs, 18, index)
-		end
-
-		path[#path + 1] = Vector3(origin:Unpack())
-		timetable[#timetable+1] = curtime + clock
-		clock = clock + tickinterval
-	end
-
-	return path, path[#path], timetable
-end
-
----@param player Player
----@param time_ticks number
----@return Vector3[], Vector3, number[]
-local function RunTicks(player, time_ticks, lazyness)
-	local path = {}
-	local velocity = player:GetHandle():GetPropVector("localdata", "m_vecVelocity[0]") or Vector3()
-	local origin = player:GetAbsOrigin() + Vector3(0, 0, 1)
-
-	if velocity:Length() <= 0.01 then
-		path[1] = origin
-		return path, origin, {globals.CurTime()}
-	end
-
-	local maxspeed = player:GetHandle():GetPropFloat("m_flMaxspeed") or 450
-	local clock = 0.0
-	local tickinterval = globals.TickInterval() * (lazyness or 10.0)
-	local wishdir = velocity / velocity:Length()
-	local mins, maxs = player:GetMins(), player:GetMaxs()
-
-	local _, sv_airaccelerate = client.GetConVar("sv_airaccelerate")
-	local _, sv_accelerate = client.GetConVar("sv_accelerate")
-
-	local index = player:GetIndex()
-	local curtime = globals.CurTime()
-	local timetable = {}
-
-	for i = 1, time_ticks do
-		local is_on_ground = CheckIsOnGround(origin, mins, maxs, index)
-
-		Friction(velocity, is_on_ground, tickinterval)
-
-		if is_on_ground then
-			Accelerate(velocity, wishdir, maxspeed, sv_accelerate, tickinterval)
-			velocity.z = 0
-		else
-			AirAccelerate(velocity, wishdir, maxspeed, sv_airaccelerate, tickinterval, 0, player:GetHandle())
 			velocity.z = velocity.z - 800 * tickinterval
 		end
 

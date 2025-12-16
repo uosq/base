@@ -101,7 +101,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	---@type {[1]: Entity, [2]: number}[]
 	local validTargets = {}
 
-	local maxFov = data.aimbot.proj.fov
+	local maxDot = math.cos(math.rad(data.aimbot.proj.fov))
 
 	--local trace
 
@@ -114,15 +114,14 @@ function lib.Run(cmd, plocal, weapon, data, state)
 			mathlib.NormalizeVector(dir)
 
 			local dot = forward:Dot(dir)
-			local fovDeg = math.deg(math.acos(dot))
 
-			if distance <= 2048 and fovDeg <= maxFov then
+			if distance <= 2048 and dot >= maxDot then
 				--[[trace = engine.TraceLine(localPos, center, MASK_SHOT_HULL, function (ent, contentsMask)
 					return ent:GetIndex() ~= localIndex and ent:GetIndex() ~= player:GetIndex()
 				end)]]
 
 				--if trace.fraction == 1.0 then
-					validTargets[#validTargets+1] = {player, fovDeg}
+					validTargets[#validTargets+1] = {player, dot}
 				--end
 			end
 		end
@@ -133,7 +132,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	end
 
 	table.sort(validTargets, function (a, b)
-		return a[2] < b[2]
+		return a[2] > b[2]
 	end)
 
 	local charge = info.m_bCharges and weapon:GetCurrentCharge() or 0

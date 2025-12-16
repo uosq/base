@@ -26,14 +26,14 @@ function lib.GetState()
 	return state
 end
 
-function lib.ResetTarget()
+function lib.ResetState()
 	state.target = nil
 end
 
 ---@param data Settings
 ---@param cmd UserCmd
 function lib.Run(cmd, data)
-	lib.ResetTarget()
+	lib.ResetState()
 
 	if data.aimbot.enabled == false then
 		return
@@ -75,18 +75,9 @@ function lib.Run(cmd, data)
 	end
 end
 
-function lib.Draw()
-	local plocal = SDK.AsBasePlayer(entities.GetLocalPlayer())
-	if plocal == nil then
-		return
-	end
-
-	local settings = SDK.GetSettingsManager().Get()
-
-	if settings.aimbot.enabled == false then
-		return
-	end
-
+---@param plocal Player
+---@param settings Settings
+local function DrawFovIndicator(plocal, settings)
 	if settings.aimbot.fovindicator == false then
 		return
 	end
@@ -103,6 +94,21 @@ function lib.Draw()
 
 	draw.Color(255, 255, 255, 255)
 	draw.OutlinedCircle(w//2, h//2, radius//1, 32)
+end
+
+function lib.Draw()
+	local settings = SDK.GetSettingsManager().Get()
+
+	if settings.aimbot.enabled == false then
+		return
+	end
+
+	local plocal = SDK.AsPlayer(entities.GetLocalPlayer())
+	if plocal == nil then
+		return
+	end
+
+	DrawFovIndicator(plocal, settings)
 end
 
 return lib
