@@ -36,6 +36,10 @@ function Player:GetBonePosition(boneIndex)
 	return Vector3(boneMatrix[1][4], boneMatrix[2][4], boneMatrix[3][4])
 end
 
+function Player:m_iDefaultFOV()
+	return self.__handle:GetPropInt("m_iDefaultFOV")
+end
+
 ---@param boneIndex BoneIndex
 ---@return Vector3?
 function Player:GetBonePositionOffset(boneIndex)

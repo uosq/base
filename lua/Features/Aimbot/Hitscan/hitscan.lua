@@ -57,9 +57,8 @@ function aim.Run(cmd, plocal, weapon, data, state)
 	---@type {[1]: Vector3, [2]: number, [3]: Entity}[]
 	local validTargets = {}
 
-	local maxFov = data.aimbot.hitscan.fov
+	local maxDot = math.cos(math.rad(data.aimbot.hitscan.fov))
 
-	local latency = clientstate.GetNetChannel():GetLatency(E_Flows.FLOW_INCOMING)
 	local trace
 
 	for _, entity in pairs (entitylist) do
@@ -74,15 +73,14 @@ function aim.Run(cmd, plocal, weapon, data, state)
 					mathlib.NormalizeVector(dir)
 
 					local dot = forward:Dot(dir)
-					local fovDeg = math.deg(math.acos(dot))
 
-					if distance <= 2048 and fovDeg <= maxFov then
+					if distance <= 2048 and dot >= maxDot then
 						trace = engine.TraceLine(localPos, shootPos, MASK_SHOT_HULL, function (ent, contentsMask)
 							return ent:GetIndex() ~= localIndex and ent:GetIndex() ~= entity:GetIndex()
 						end)
 
 						if trace.fraction == 1.0 then
-							validTargets[#validTargets+1] = {dir, fovDeg, entity}
+							validTargets[#validTargets+1] = {dir, dot, entity}
 						end
 					end
 				end
@@ -95,7 +93,7 @@ function aim.Run(cmd, plocal, weapon, data, state)
 	end
 
 	table.sort(validTargets, function (a, b)
-		return a[2] < b[2]
+		return a[2] > b[2]
 	end)
 
 	for _, target in ipairs (validTargets) do
