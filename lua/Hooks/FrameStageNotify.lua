@@ -21,7 +21,7 @@ local function OnFrameStageNotify(stage)
 	elseif stage == E_ClientFrameStage.FRAME_RENDER_START then
 		local angle = angleManager.GetAngle()
 		if angle then
-			local plocal = SDK.AsPlayer(entities.GetLocalPlayer())
+			local plocal = SDK.Reinterpret(entities.GetLocalPlayer(), SDK.GetPlayerClass())
 			if plocal == nil or plocal:m_nForceTauntCam() == 0 then
 				return
 			end

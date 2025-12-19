@@ -43,7 +43,7 @@ function lib.Run(cmd, data)
 		return
 	end
 
-	local plocal = SDK.AsPlayer(entities.GetLocalPlayer())
+	local plocal = SDK.Reinterpret(entities.GetLocalPlayer(), SDK.GetPlayerClass())
 	if plocal == nil then
 		return
 	end
@@ -56,7 +56,7 @@ function lib.Run(cmd, data)
 		return
 	end
 
-	local weapon = SDK.AsWeapon(plocal:m_hActiveWeapon())
+	local weapon = SDK.Reinterpret(plocal:m_hActiveWeapon(), SDK.GetWeaponClass())
 	if weapon == nil then
 		return
 	end
@@ -103,7 +103,7 @@ function lib.Draw()
 		return
 	end
 
-	local plocal = SDK.AsPlayer(entities.GetLocalPlayer())
+	local plocal = SDK.Reinterpret(entities.GetLocalPlayer(), SDK.GetPlayerClass())
 	if plocal == nil then
 		return
 	end

@@ -22,6 +22,7 @@
 ---@field key string
 ---@field maxsimtime number
 ---@field selfdamage boolean
+---@field compensate boolean
 
 ---@class Melee
 ---@field enabled boolean

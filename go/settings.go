@@ -1,37 +1,38 @@
 package main
 
+import "image/color"
+
 type Settings struct {
 	Aimbot Aimbot `json:"aimbot"`
 	Glow   Glow   `json:"glow"`
+	ESP    ESP    `json:"esp"`
 }
 
 type Aimbot struct {
-	Enabled      bool       `json:"enabled"`
-	FovIndicator bool       `json:"fovindicator"`
-	Hitscan      AimHitscan `json:"hitscan"`
-	Proj         AimProj    `json:"proj"`
-	Melee        AimMelee   `json:"melee"`
-}
+	Enabled      bool `json:"enabled"`
+	FovIndicator bool `json:"fovindicator"`
 
-type AimHitscan struct {
-	Enabled   bool    `json:"enabled"`
-	Fov       float64 `json:"fov"`
-	Autoshoot bool    `json:"autoshoot"`
-	Key       string  `json:"key"`
-}
+	Hitscan struct {
+		Enabled   bool    `json:"enabled"`
+		Fov       float64 `json:"fov"`
+		Autoshoot bool    `json:"autoshoot"`
+		Key       string  `json:"key"`
+	} `json:"hitscan"`
 
-type AimProj struct {
-	Enabled    bool    `json:"enabled"`
-	Fov        float64 `json:"fov"`
-	Autoshoot  bool    `json:"autoshoot"`
-	Key        string  `json:"key"`
-	MaxSimTime float64 `json:"maxsimtime"`
-	SelfDamage bool    `json:"selfdamage"`
-}
+	Proj struct {
+		Enabled              bool    `json:"enabled"`
+		Fov                  float64 `json:"fov"`
+		Autoshoot            bool    `json:"autoshoot"`
+		Key                  string  `json:"key"`
+		MaxSimTime           float64 `json:"maxsimtime"`
+		SelfDamage           bool    `json:"selfdamage"`
+		CompensateDetonation bool    `json:"compensate"`
+	} `json:"proj"`
 
-type AimMelee struct {
-	Enabled bool `json:"enabled"`
-	Rage    bool `json:"rage"`
+	Melee struct {
+		Enabled bool `json:"enabled"`
+		Rage    bool `json:"rage"`
+	} `json:"melee"`
 }
 
 type Glow struct {
@@ -45,6 +46,23 @@ type Glow struct {
 	Dispensers    bool    `json:"dispensers"`
 	Teleporters   bool    `json:"teleporters"`
 	MedAmmo       bool    `json:"medammo"`
-	ViewModel     bool    `json:"viewmodel"`
 	ChristmasBall bool    `json:"christmasball"`*/
+}
+
+type ESP struct {
+	Enabled bool `json:"enabled"`
+
+	Box struct {
+		Enabled bool   `json:"enabled"`
+		Mode    string `json:"mode"` // modes: solid, outlined
+	} `json:"box"`
+
+	HealthBar struct {
+		Enabled     bool       `json:"enabled"`
+		TopColor    color.RGBA `json:"topcolor"`    // top color of the gradient
+		BottomColor color.RGBA `json:"bottomcolor"` // bottom color of the gradient
+	} `json:"healthbar"`
+
+	Filter    uint8 `json:"filter"` // Entity filter; Player, Sentries, Dispensers, Teleporters, NPCs, Friends
+	CondFlags uint8 `json:"conds"`
 }

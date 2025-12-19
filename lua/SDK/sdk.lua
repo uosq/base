@@ -8,6 +8,7 @@ local chokedlib = require("SDK.chokedcmds")
 
 local angleManager = require("SDK.angleMgr")
 local settingsManager = require("Settings.settings")
+local cvarManager = require("SDK.cvarManager")
 
 local EAmmoType = require("SDK.ammotype")
 local EMinigunState = require("SDK.minigunstate")
@@ -37,6 +38,7 @@ function sdk.GetProjectileSim()
 	return projectileSimulation
 end
 
+--[[
 ---@param entity Entity?
 ---@return Player?
 function sdk.AsPlayer(entity)
@@ -47,13 +49,64 @@ end
 ---@return BasePlayer?
 function sdk.AsBasePlayer(entity)
 	return basePlayerWrap.Get(entity)
+end]]
+
+--- Function to convert `obj` to `class` (Player, BasePlayer, Weapon, ...) \
+--- Can convert a Entity to class \
+--- Or you can use a already existing wrapped class (example: Player)
+---@generic T
+---@param obj Entity|table?
+---@param classTable T
+---@return T?
+function sdk.Reinterpret(obj, classTable)
+	if obj == nil or type(classTable) ~= "table" then
+		return nil
+	end
+
+	if type(obj) == "table" then
+		if obj.__handle == nil then
+			return nil
+		end
+
+		return setmetatable(obj, classTable)
+	end
+
+	return setmetatable({__handle = obj}, classTable)
 end
 
+function sdk.GetWeaponClass()
+	return weaponWrap
+end
+
+function sdk.GetPlayerClass()
+	return playerWrap
+end
+
+function sdk.GetBasePlayerClass()
+	return basePlayerWrap
+end
+
+---@return Player[]
+function sdk.GetPlayerList()
+	local baseclass = playerWrap
+	local list = {}
+
+	for i = 1, globals.MaxClients() do
+		local player = sdk.Reinterpret(entities.GetByIndex(i), baseclass)
+		if player then
+			list[#list+1] = player
+		end
+	end
+
+	return list
+end
+
+--[[
 ---@param entity Entity?
 ---@return Weapon?
 function sdk.AsWeapon(entity)
 	return weaponWrap.Get(entity)
-end
+end]]
 
 function sdk.GetInputLib()
 	return inputlib
@@ -81,6 +134,10 @@ end
 
 function sdk.GetChokedLib()
 	return chokedlib
+end
+
+function sdk.GetConVarManager()
+	return cvarManager
 end
 
 --- Source: https://github.com/rei-2/Amalgam/blob/398e61d0948c1a49477caf806a3995ab12efbeff/Amalgam/src/SDK/SDK.cpp#L531
@@ -243,6 +300,7 @@ function sdk.IsAttacking(plocal, weapon, cmd)
 
 --- wtf does this 2 mean?
 --- return G::CanPrimaryAttack && pCmd->buttons & IN_ATTACK ? 1 : G::Reloading && pCmd->buttons & IN_ATTACK ? 2 : 0;
+--- we dont have m_bInReload so I can't get the reloading part :p
 	return (weapon:CanPrimaryAttack() and cmd.buttons & IN_ATTACK ~= 0)
 end
 

@@ -40,11 +40,14 @@ function aim.Run(cmd, plocal, weapon, data, state)
 		return
 	end
 
-	if inputlib.GetKey(data.aimbot.hitscan.key) == false then
+	if inputlib.IsKeyDown(data.aimbot.hitscan.key) == false then
 		return
 	end
 
-	local entitylist = entities.FindByClass("CTFPlayer")
+	local entitylist = SDK.GetPlayerList()
+	if #entitylist == 0 then
+		return
+	end
 
 	local viewangle = engine.GetViewAngles()
 	local forward = viewangle:Forward()
@@ -54,34 +57,30 @@ function aim.Run(cmd, plocal, weapon, data, state)
 	local localTeam = plocal:GetTeamNumber()
 	local localIndex = plocal:GetIndex()
 
-	---@type {[1]: Vector3, [2]: number, [3]: Entity}[]
+	---@type {[1]: Vector3, [2]: number, [3]: Player}[]
 	local validTargets = {}
 
 	local maxDot = math.cos(math.rad(data.aimbot.hitscan.fov))
 
 	local trace
 
-	for _, entity in pairs (entitylist) do
-		if entity:GetTeamNumber() ~= localTeam and entity:IsAlive() and entity:IsDormant() == false then
-			local player = SDK.AsPlayer(entity)
-			if player then
-				local shootPos = GetShootPosition(plocal, player, weapon)
-				if shootPos then
-					local dir = (shootPos - localPos)
+	for _, player in pairs (entitylist) do
+		if player:GetTeamNumber() ~= localTeam and player:IsAlive() and player:IsDormant() == false then
+			local shootPos = GetShootPosition(plocal, player, weapon)
+			if shootPos then
+				local dir = (shootPos - localPos)
 
-					local distance = dir:Length()
-					mathlib.NormalizeVector(dir)
+				local distance = dir:Length()
+				mathlib.NormalizeVector(dir)
 
-					local dot = forward:Dot(dir)
+				local dot = forward:Dot(dir)
+				if distance <= 2048 and dot >= maxDot then
+					trace = engine.TraceLine(localPos, shootPos, MASK_SHOT_HULL, function (ent, contentsMask)
+						return ent:GetIndex() ~= localIndex and ent:GetIndex() ~= player:GetIndex()
+					end)
 
-					if distance <= 2048 and dot >= maxDot then
-						trace = engine.TraceLine(localPos, shootPos, MASK_SHOT_HULL, function (ent, contentsMask)
-							return ent:GetIndex() ~= localIndex and ent:GetIndex() ~= entity:GetIndex()
-						end)
-
-						if trace.fraction == 1.0 then
-							validTargets[#validTargets+1] = {dir, dot, entity}
-						end
+					if trace.fraction == 1.0 then
+						validTargets[#validTargets+1] = {dir, dot, player}
 					end
 				end
 			end
@@ -97,8 +96,7 @@ function aim.Run(cmd, plocal, weapon, data, state)
 	end)
 
 	for _, target in ipairs (validTargets) do
-		local player = SDK.AsPlayer(target[3])
-		if player and weapon:CanHit(player) then
+		if weapon:CanHit(target[3]) then
 			if data.aimbot.hitscan.autoshoot and weapon:CanPrimaryAttack() then
 				cmd.buttons = cmd.buttons | IN_ATTACK
 			end

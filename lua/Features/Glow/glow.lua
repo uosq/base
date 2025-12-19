@@ -220,7 +220,7 @@ function lib.Run(settings)
 	end
 
 	local flags = settings.glow.flags
-	local enabled = flags & (1 << 0) ~= 0
+	local enabled = flags & 0 ~= 0
 
 	if enabled == false then
 		return
@@ -241,23 +241,12 @@ function lib.Run(settings)
 	local teleporters = flags & (1 << 5) ~= 0
 	local christmasball = flags & (1 << 6) ~= 0
 	local medammo = flags & (1 << 7) ~= 0
-	local viewmodel = flags & (1 << 8) ~= 0
 
 	if sentries then GetClass("CObjectSentrygun", glowEnts, weapon) end
 	if dispensers then GetClass("CObjectDispenser", glowEnts, weapon) end
 	if teleporters then GetClass("CObjectTeleporter", glowEnts, weapon) end
 	if medammo then GetClass("CBaseAnimating", glowEnts, weapon) end
 	if players then GetPlayers(glowEnts, weapon) end
-
-	if viewmodel then
-		local plocal = entities.GetLocalPlayer()
-		if plocal and plocal:GetPropBool("m_nForceTauntCam") == false and plocal:InCond(E_TFCOND.TFCond_Taunting) == false then
-			local _, _, cvar = client.GetConVar("cl_first_person_uses_world_model")
-			if cvar == "0" then
-				GetClass("CTFViewModel", glowEnts, weapon)
-			end
-		end
-	end
 
 	if christmasball then GetChristmasBalls(glowEnts, weapon) end
 

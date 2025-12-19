@@ -1,6 +1,12 @@
 local lib = {}
 
-function lib.GetKey(keystr)
+---Returns true when the key is down \
+---Can be anything like "W" or "MOUSE_4" \
+---Accepts both lower and upper case \
+---Always returns true when `keystr` is "KEY_NONE"!
+---@param keystr string
+---@return boolean success
+function lib.IsKeyDown(keystr)
 	local upper = string.upper(keystr)
 
 	--- early return as none means yes
@@ -9,7 +15,8 @@ function lib.GetKey(keystr)
 	end
 
 	if E_ButtonCode[upper] then
-		return input.IsButtonDown(E_ButtonCode[upper])
+		local isdown = input.IsButtonDown(E_ButtonCode[upper])
+		return isdown
 	end
 
 	local key = E_ButtonCode["KEY_" .. upper]

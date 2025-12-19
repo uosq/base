@@ -1,8 +1,10 @@
----@class Player
----@field private __index Player
----@field private __handle Entity
+local BaseClass = require("SDK.wrappers.basewrapper")
+
+---@class Player: BaseWrapper
+---@field protected __index Player
 local Player = {}
 Player.__index = Player
+setmetatable(Player, {__index = BaseClass})
 
 ---@param entity Entity?
 ---@return Player?
@@ -11,9 +13,7 @@ function Player.Get(entity)
 		return nil
 	end
 
-	local this = {__handle = entity}
-	setmetatable(this, Player)
-	return this
+	return setmetatable({__handle = entity}, Player)
 end
 
 ---@param boneIndex BoneIndex
@@ -40,15 +40,16 @@ function Player:m_iDefaultFOV()
 	return self.__handle:GetPropInt("m_iDefaultFOV")
 end
 
----@param boneIndex BoneIndex
----@return Vector3?
-function Player:GetBonePositionOffset(boneIndex)
-	local bonePos = self:GetBonePosition(boneIndex)
-	if bonePos == nil then
-		return nil
-	end
+function Player:IsAlive()
+	return self.__handle:IsAlive()
+end
 
-	return bonePos - self:GetAbsOrigin()
+function Player:IsDormant()
+	return self.__handle:IsDormant()
+end
+
+function Player:m_bDucking()
+	return self.__handle:GetPropBool("m_bDucking")
 end
 
 function Player:GetMins()

@@ -11,9 +11,7 @@ function BasePlayer.Get(entity)
 		return nil
 	end
 
-	local this = {__handle = entity}
-	setmetatable(this, BasePlayer)
-	return this
+	return setmetatable({__handle = entity}, BasePlayer)
 end
 
 function BasePlayer:m_iFOV()

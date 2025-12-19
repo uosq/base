@@ -104,10 +104,10 @@ func CreateColorPickerButton(label string, colorVal *color.RGBA, window fyne.Win
 	button := widget.NewButton(label, func() {
 		picker := dialog.NewColorPicker(label, "Choose Color", func(c color.Color) {
 			r, g, b, a := c.RGBA()
-			colorVal.R = uint8(r >> 8)
-			colorVal.G = uint8(g >> 8)
-			colorVal.B = uint8(b >> 8)
-			colorVal.A = uint8(a >> 8)
+			colorVal.R = uint8(r)
+			colorVal.G = uint8(g)
+			colorVal.B = uint8(b)
+			colorVal.A = uint8(a)
 		}, window)
 		picker.Advanced = true
 		picker.SetColor(colorVal)
@@ -132,4 +132,12 @@ func ToggleFlagBit(value *uint16, n uint16) {
 		return
 	}
 	*value ^= 1 << n
+}
+
+func Group(title string, content ...fyne.CanvasObject) fyne.CanvasObject {
+	return widget.NewCard(title, "", container.NewVBox(content...))
+}
+
+func GroupH(title string, content ...fyne.CanvasObject) fyne.CanvasObject {
+	return widget.NewCard(title, "", container.NewHBox(content...))
 }

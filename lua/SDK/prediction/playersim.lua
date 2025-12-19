@@ -1,3 +1,5 @@
+local outputPath = {}
+
 --- Why is this not in the lua docs?
 local RuneTypes_t = {
 	RUNE_NONE = -1,

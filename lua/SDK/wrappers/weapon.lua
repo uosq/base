@@ -1,13 +1,14 @@
 local playerWrapper = require("SDK.wrappers.player")
+local BaseClass = require("SDK.wrappers.basewrapper")
 
 local WEAPON_NOCLIP = -1
 local SYDNEY_SLEEPER = 230
 
----@class Weapon
----@field private __handle Entity
----@field private __index Weapon
+---@class Weapon: BaseWrapper
+---@field protected __handle Entity
 local Weapon = {}
 Weapon.__index = Weapon
+setmetatable(Weapon, {__index = BaseClass})
 
 ---@param entity Entity?
 ---@return Weapon?
@@ -16,9 +17,7 @@ function Weapon.Get(entity)
 		return nil
 	end
 
-	local this = {__handle = entity}
-	setmetatable(this, Weapon)
-	return this
+	return setmetatable({__handle = entity}, Weapon)
 end
 
 function Weapon:m_hOwner()
@@ -135,7 +134,7 @@ function Weapon:m_iItemDefinitionIndex()
 	return self.__handle:GetPropInt("m_Item", "m_iItemDefinitionIndex")
 end
 
----@return number?
+---@return number
 function Weapon:GetCurrentCharge()
 	--- WARNING: CanCharge() will crash your game with a Rocket Launcher!
 	--- I have to find another way
@@ -151,7 +150,7 @@ function Weapon:GetCurrentCharge()
 		return diff/maxtime
 	end
 
-	return nil
+	return 0
 end
 
 function Weapon:GetHandle()
@@ -172,6 +171,7 @@ end
 
 ---@param attrib string
 ---@param defaultValue number? # optional (default = `1.0`)
+---@return number
 function Weapon:AttributeHookFloat(attrib, defaultValue)
 	return self.__handle:AttributeHookFloat(attrib, defaultValue)
 end
@@ -225,6 +225,14 @@ end
 
 function Weapon:IsProjectileWeapon()
 	return self:IsHitscan() == false and self:IsMeleeWeapon() == false
+end
+
+---@param player Player
+---@param offset Vector3
+---@param hitTeammates boolean
+---@return Vector3 vecSrc, Vector3 angForward
+function Weapon:GetProjectileFireSetup(player, offset, hitTeammates)
+	return self.__handle:GetProjectileFireSetup(player:GetHandle(), offset, hitTeammates, 2048)
 end
 
 ---@param player Player

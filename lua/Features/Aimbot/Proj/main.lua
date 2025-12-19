@@ -75,7 +75,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 		return
 	end
 
-	if inputlib.GetKey(data.aimbot.proj.key) == false then
+	if inputlib.IsKeyDown(data.aimbot.proj.key) == false then
 		return
 	end
 
@@ -88,7 +88,10 @@ function lib.Run(cmd, plocal, weapon, data, state)
 		return
 	end
 
-	local entitylist = entities.FindByClass("CTFPlayer")
+	local entitylist = SDK.GetPlayerList()
+	if #entitylist == 0 then
+		return
+	end
 
 	local viewangle = engine.GetViewAngles()
 	local forward = viewangle:Forward()
@@ -96,18 +99,15 @@ function lib.Run(cmd, plocal, weapon, data, state)
 
 	local localPos = plocal:GetEyePos()
 	local localTeam = plocal:GetTeamNumber()
-	--local localIndex = plocal:GetIndex()
 
-	---@type {[1]: Entity, [2]: number}[]
+	---@type {[1]: Player, [2]: number}[]
 	local validTargets = {}
 
 	local maxDot = math.cos(math.rad(data.aimbot.proj.fov))
 
-	--local trace
-
 	for _, player in pairs (entitylist) do
 		if player:GetTeamNumber() ~= localTeam and player:IsAlive() and player:IsDormant() == false and player:InCond(E_TFCOND.TFCond_Cloaked) == false then
-			local center = SDK.AsPlayer(player):GetWorldSpaceCenter()
+			local center = player:GetWorldSpaceCenter()
 			local dir = (center - localPos)
 
 			local distance = dir:Length()
@@ -116,13 +116,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 			local dot = forward:Dot(dir)
 
 			if distance <= 2048 and dot >= maxDot then
-				--[[trace = engine.TraceLine(localPos, center, MASK_SHOT_HULL, function (ent, contentsMask)
-					return ent:GetIndex() ~= localIndex and ent:GetIndex() ~= player:GetIndex()
-				end)]]
-
-				--if trace.fraction == 1.0 then
-					validTargets[#validTargets+1] = {player, dot}
-				--end
+				validTargets[#validTargets+1] = {player, dot}
 			end
 		end
 	end
@@ -144,28 +138,30 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	local mins, maxs = info.m_vecMins, info.m_vecMaxs
 	local hasGravity = info.m_bHasGravity
 	local dmgRadius = info.m_flDamageRadius
+	local selfdamage = data.aimbot.proj.selfdamage
 
 	local validTarget, validAngle = nil, nil
 
 	local weaponOffset = GetPositionOffset(plocal, weapon)
+	local extraTime = (data.aimbot.proj.compensate and weapon:GetWeaponID() == TF_WEAPON_PIPEBOMBLAUNCHER) and 0.7 or 0
 
 	for _, target in ipairs (validTargets) do
-		local distance = (localPos - SDK.AsPlayer(target[1]):GetWorldSpaceCenter()):Length()
-		if data.aimbot.proj.selfdamage == false and distance <= dmgRadius then
+		local distance = (localPos - target[1]:GetWorldSpaceCenter()):Length()
+		if selfdamage == false and distance <= dmgRadius then
 			goto skip
 		end
 
-		local time = (distance/speed)
+		local time = (distance/speed) + extraTime
 		if time > data.aimbot.proj.maxsimtime then
 			goto skip
 		end
 
-		local _, targetPos = playerPred(target[1], time, 3)
+		local _, targetPos = playerPred(target[1]:GetHandle(), time)
 
 		targetPos.z = targetPos.z + weaponOffset
 
 		if hasGravity then
-			local drop = gravity * time^2
+			local drop = gravity * (time - extraTime)^2
 			targetPos.z = targetPos.z + drop
 		end
 
@@ -211,10 +207,6 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	if SDK.IsAttacking(plocal, weapon, cmd) then
 		cmd.viewangles = validAngle
 		cmd.sendpacket = false
-
-		--[[if info.m_bCharges then
-			cmd.buttons = cmd.buttons & ~IN_ATTACK
-		end]]
 	end
 
 	state.target = validTarget
