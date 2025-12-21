@@ -195,11 +195,8 @@ function lib.Run(settings)
 
 			if boxOutlined then
 				draw.Color(0, 0, 0, 255)
-				for i = -1, 1 do
-					if i ~= 0 then
-						draw.OutlinedRect(feetScreenPos[1] - w + i, feetScreenPos[2] - h + i, feetScreenPos[1] + w + i, feetScreenPos[2] + i)
-					end
-				end
+				draw.OutlinedRect(feetScreenPos[1] - w - 1, feetScreenPos[2] - h - 1, feetScreenPos[1] + w + 1, feetScreenPos[2] + 1)
+				draw.OutlinedRect(feetScreenPos[1] - w + 1, feetScreenPos[2] - h + 1, feetScreenPos[1] + w - 1, feetScreenPos[2] - 1)
 			end
 		end
 
