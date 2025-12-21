@@ -1,6 +1,5 @@
 local playerWrap = require("SDK.wrappers.player")
 local weaponWrap = require("SDK.wrappers.weapon")
-local basePlayerWrap = require("SDK.wrappers.baseplayer")
 
 local inputlib = require("SDK.input")
 local mathlib = require("SDK.math")
@@ -23,8 +22,19 @@ local iThrowTick = -5
 local iLastTickBase = 0
 local Throwing = false
 local bFiring, bLoading = false, false
+local aimTarget = nil
 
 local sdk = {}
+
+---@return Entity?
+function sdk.GetAimTarget()
+	return aimTarget
+end
+
+---@param entity Entity?
+function sdk.SetAimTarget(entity)
+	aimTarget = entity
+end
 
 function sdk.GetSettingsManager()
 	return settingsManager
@@ -80,10 +90,6 @@ end
 
 function sdk.GetPlayerClass()
 	return playerWrap
-end
-
-function sdk.GetBasePlayerClass()
-	return basePlayerWrap
 end
 
 ---@return Player[]
@@ -302,6 +308,55 @@ function sdk.IsAttacking(plocal, weapon, cmd)
 --- return G::CanPrimaryAttack && pCmd->buttons & IN_ATTACK ? 1 : G::Reloading && pCmd->buttons & IN_ATTACK ? 2 : 0;
 --- we dont have m_bInReload so I can't get the reloading part :p
 	return (weapon:CanPrimaryAttack() and cmd.buttons & IN_ATTACK ~= 0)
+end
+
+---@param value integer
+---@param n integer
+---@return boolean
+function sdk.bGetFlag(value, n)
+	return (value & (1<<n)) ~= 0
+end
+
+---@param entity Entity
+function sdk.GetColor(entity)
+	if entity:GetClass() == "CBaseAnimating" then
+		local modelName = models.GetModelName(entity:GetModel())
+		if string.find(modelName, "ammopack") then
+			return {1.0, 1.0, 1.0, 1.0}
+		elseif string.find(modelName, "medkit") then
+			return {0.15294117647059, 0.96078431372549, 0.32941176470588, 1.0}
+		end
+	end
+
+	if aimTarget and aimTarget:GetIndex() == entity:GetIndex() then
+		--return settingsManager.Get().esp.colors.aimtarget
+		return {1, 1, 1, 1}
+	end
+
+	if entity:GetIndex() == client.GetLocalPlayerIndex() then
+		--return settingsManager.Get().esp.colors.localplayer
+		return {0, 1, 0.501888, 1}
+	end
+
+	if entity:GetClass() == "CPhysicsProp" then
+		return {1, 1, 1, 1}
+	end
+
+	if entity:IsWeapon() then
+		return {1, 1, 1, 1}
+	end
+
+	if playerlist.GetPriority(entity) > 0 then
+		return {1, 1, 0.0, 1}
+	elseif playerlist.GetPriority(entity) < 0 then
+		return {0, 1, 0.501888, 1}
+	end
+
+	if entity:GetTeamNumber() == 3 then
+		return {0.145077, 0.58815, 0.74499, 1}
+	else
+		return {0.929277, 0.250944, 0.250944, 1}
+	end
 end
 
 return sdk

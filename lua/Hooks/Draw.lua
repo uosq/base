@@ -2,13 +2,28 @@
 --local hookManager = require("SDK.hookMgr")
 
 local Aimbot = require("Features.Aimbot.aimbot")
+local ESP = require("Features.ESP.esp")
+
+local SDK = require("SDK.sdk")
+local settingsManager = SDK.GetSettingsManager()
 
 local function OnDraw()
 	if clientstate.GetClientSignonState() <= E_SignonState.SIGNONSTATE_SPAWN then
 		return
 	end
 
+	if engine.IsChatOpen() or engine.Con_IsVisible() or engine.IsGameUIVisible() then
+		return
+	end
+
+	if settingsManager.GetStatus() == false then
+		return
+	end
+
+	local settings = settingsManager.Get()
+
 	Aimbot.Draw()
+	ESP.Run(settings)
 end
 
 callbacks.Register("Draw", OnDraw)

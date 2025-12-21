@@ -90,13 +90,23 @@ func CreateToggle(label string, value *bool) *widget.Check {
 	return toggle
 }
 
-func CreateToggleFlag(label string, value *uint16, flagNum uint16) *widget.Check {
+func CreateToggleFlag16(label string, value *uint16, flagNum uint16) *widget.Check {
 	toggle := widget.NewCheck(label, func(b bool) {
-		ToggleFlagBit(value, flagNum)
+		ToggleFlagBit16(value, flagNum)
 		//fmt.Println(ReadFlagBit(*value, flagNum))
 	})
 
-	toggle.Checked = ReadFlagBit(*value, flagNum)
+	toggle.Checked = ReadFlagBit16(*value, flagNum)
+	return toggle
+}
+
+func CreateToggleFlag8(label string, value *uint8, flagNum uint8) *widget.Check {
+	toggle := widget.NewCheck(label, func(b bool) {
+		ToggleFlagBit8(value, flagNum)
+		//fmt.Println(ReadFlagBit(*value, flagNum))
+	})
+
+	toggle.Checked = ReadFlagBit8(*value, flagNum)
 	return toggle
 }
 
@@ -120,21 +130,37 @@ func CreateCenterLabel(label string) *fyne.Container {
 	return container.NewCenter(widget.NewLabel(label))
 }
 
-func ReadFlagBit(value uint16, flag uint16) bool {
+func ReadFlagBit16(value uint16, flag uint16) bool {
+	return (value&(1<<flag) != 0)
+}
+
+func ReadFlagBit8(value uint8, flag uint8) bool {
 	return (value&(1<<flag) != 0)
 }
 
 // Pointers are so useful
 // Why does Lua not have them?!?!?!
-func ToggleFlagBit(value *uint16, n uint16) {
-	if n >= 15 {
+func ToggleFlagBit16(value *uint16, n uint16) {
+	if n > 15 {
 		fmt.Println("Trying to set bit bigger than integer can hold!")
 		return
 	}
+
 	*value ^= 1 << n
 }
 
-func Group(title string, content ...fyne.CanvasObject) fyne.CanvasObject {
+// Pointers are so useful
+// Why does Lua not have them?!?!?!
+func ToggleFlagBit8(value *uint8, n uint8) {
+	if n > 7 {
+		fmt.Println("Trying to set bit bigger than integer can hold!")
+		return
+	}
+
+	*value ^= 1 << n
+}
+
+func GroupV(title string, content ...fyne.CanvasObject) fyne.CanvasObject {
 	return widget.NewCard(title, "", container.NewVBox(content...))
 }
 

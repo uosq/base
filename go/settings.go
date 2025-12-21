@@ -38,19 +38,24 @@ type Aimbot struct {
 type Glow struct {
 	Stencil    float64 `json:"stencil"`
 	Blurriness float64 `json:"blurriness"`
-	Flags      uint16  `json:"flags"`
-	/*Enabled    bool    `json:"enabled"`
-	Weapon        bool    `json:"weapon"`
-	Players       bool    `json:"players"`
-	Sentries      bool    `json:"sentries"`
-	Dispensers    bool    `json:"dispensers"`
-	Teleporters   bool    `json:"teleporters"`
-	MedAmmo       bool    `json:"medammo"`
-	ChristmasBall bool    `json:"christmasball"`*/
+	Enabled    bool    `json:"enabled"`
+	/*Enabled    bool    `json:"enabled"` 0
+	Weapon        bool    `json:"weapon"` 1
+	Players       bool    `json:"players"` 2
+	Sentries      bool    `json:"sentries"` 3
+	Dispensers    bool    `json:"dispensers"` 4
+	Teleporters   bool    `json:"teleporters"` 5
+	MedAmmo       bool    `json:"medammo"` 6
+	ChristmasBall bool    `json:"christmasball"` 7*/
 }
 
 type ESP struct {
 	Enabled bool `json:"enabled"`
+
+	Colors struct {
+		RedTeam  color.RGBA `json:"redteam"`
+		BlueTeam color.RGBA `json:"blueteam"`
+	} `json:"colors"`
 
 	Box struct {
 		Enabled bool   `json:"enabled"`
@@ -63,6 +68,6 @@ type ESP struct {
 		BottomColor color.RGBA `json:"bottomcolor"` // bottom color of the gradient
 	} `json:"healthbar"`
 
-	Filter    uint8 `json:"filter"` // Entity filter; Player, Sentries, Dispensers, Teleporters, NPCs, Friends
-	CondFlags uint8 `json:"conds"`
+	Filter     uint8 `json:"filter"` // Entity filter: Player, Sentries, Dispensers, Teleporters, NPCs, Friends, Projectiles, Objective
+	CondFilter uint8 `json:"conds"`  // Condition filter: Cloaked, Jarated, Ubercharged, Kritz, Milked, Overhealed, Sapped, Vacc Resistance
 }

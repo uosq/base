@@ -6,7 +6,7 @@
 
 local lib = {}
 
-local Aimbot = require("Features.Aimbot.aimbot")
+local SDK = require("SDK.sdk")
 
 --- materials
 local m_pMatGlowColor = nil
@@ -92,54 +92,6 @@ local function GetGuiColor(option)
     return { r * 0.003921, g * 0.003921, b * 0.003921, a * 0.003921 }
 end
 
----@param entity Entity
----@param weapon boolean
-local function GetColor(entity, weapon)
-	if entity:GetClass() == "CBaseAnimating" then
-		local modelName = models.GetModelName(entity:GetModel())
-		if string.find(modelName, "ammopack") then
-			return {1.0, 1.0, 1.0, 1.0}
-		elseif string.find(modelName, "medkit") then
-			return {0.15294117647059, 0.96078431372549, 0.32941176470588, 1.0}
-		end
-	end
-
-	local target = Aimbot.GetState().target
-	if target and target:GetIndex() == entity:GetIndex() then
-		local color = GetGuiColor("aimbot target color")
-		if color then return color end
-	end
-
-	if entity:GetIndex() == client.GetLocalPlayerIndex() then
-		return {0, 1, 0.501888, 1}
-	end
-
-	if entity:GetClass() == "CPhysicsProp" then
-		return {1.0, 1.0, 1.0, 1.0}
-	end
-
-	if weapon and entity:IsWeapon() then
-		return {1.0, 1.0, 1.0, 1.0}
-	end
-
-	local color = GetGuiColor("aimbot target color")
-	if aimbot.GetAimbotTarget() == entity:GetIndex() and color then
-		return color
-	end
-
-	if playerlist.GetPriority(entity) > 0 then
-		return {1, 1, 0.0, 1}
-	elseif playerlist.GetPriority(entity) < 0 then
-		return {0, 1, 0.501888, 1}
-	end
-
-	if entity:GetTeamNumber() == 3 then
-		return GetGuiColor("blue team color") or {0.145077, 0.58815, 0.74499, 1}
-	else
-		return GetGuiColor("red team color") or {0.929277, 0.250944, 0.250944, 1}
-	end
-end
-
 local function DrawEntities(ents)
 	for _, info in pairs (ents) do
 		local entity = entities.GetByIndex(info[1])
@@ -156,7 +108,7 @@ end
 local function GetPlayers(outTable, weapon)
 	for _, player in pairs (entities.FindByClass("CTFPlayer")) do
 		if player:ShouldDraw() and player:IsDormant() == false then
-			local color = GetColor(player, weapon)
+			local color = SDK.GetColor(player)
 			outTable[#outTable+1] = {player:GetIndex(), color}
 			local child = player:GetMoveChild()
 			while child ~= nil do
@@ -171,23 +123,21 @@ local function GetPlayers(outTable, weapon)
 	end
 end
 
----@param weapon boolean
 ---@param outTable table
 ---@param className string
-local function GetClass(className, outTable, weapon)
+local function GetClass(className, outTable)
 	for _, building in pairs(entities.FindByClass(className)) do
 		if building:ShouldDraw() and building:IsDormant() == false then
-			outTable[#outTable+1] = {building:GetIndex(), GetColor(building, weapon)}
+			outTable[#outTable+1] = {building:GetIndex(), SDK.GetColor(building)}
 		end
 	end
 end
 
----@param weapon boolean
 ---@param outTable table
-local function GetChristmasBalls(outTable, weapon)
+local function GetChristmasBalls(outTable)
 	for _, ball in pairs (entities.FindByClass("CPhysicsProp")) do
 		if models.GetModelName(ball:GetModel()) == "models/props_gameplay/ball001.mdl" then
-			outTable[#outTable+1] = {ball:GetIndex(), GetColor(ball, weapon)}
+			outTable[#outTable+1] = {ball:GetIndex(), SDK.GetColor(ball)}
 		end
 	end
 end
@@ -219,10 +169,7 @@ function lib.Run(settings)
 		return
 	end
 
-	local flags = settings.glow.flags
-	local enabled = flags & 0 ~= 0
-
-	if enabled == false then
+	if settings.glow.enabled == false then
 		return
 	end
 
@@ -234,21 +181,21 @@ function lib.Run(settings)
 
 	local glowEnts = {}
 
-	local players = flags & (1 << 1) ~= 0
-	local weapon = flags & (1 << 2) ~= 0
-	local sentries = flags & (1 << 3) ~= 0
-	local dispensers = flags & (1 << 4) ~= 0
-	local teleporters = flags & (1 << 5) ~= 0
-	local christmasball = flags & (1 << 6) ~= 0
-	local medammo = flags & (1 << 7) ~= 0
+	local players = SDK.bGetFlag(settings.esp.filter, 0)
+	local weapon = SDK.bGetFlag(settings.esp.filter, 1)
+	local sentries = SDK.bGetFlag(settings.esp.filter, 2)
+	local dispensers = SDK.bGetFlag(settings.esp.filter, 3)
+	local teleporters = SDK.bGetFlag(settings.esp.filter, 4)
+	local christmasball = SDK.bGetFlag(settings.esp.filter, 5)
+	local medammo = SDK.bGetFlag(settings.esp.filter, 6)
 
-	if sentries then GetClass("CObjectSentrygun", glowEnts, weapon) end
-	if dispensers then GetClass("CObjectDispenser", glowEnts, weapon) end
-	if teleporters then GetClass("CObjectTeleporter", glowEnts, weapon) end
-	if medammo then GetClass("CBaseAnimating", glowEnts, weapon) end
+	if sentries then GetClass("CObjectSentrygun", glowEnts) end
+	if dispensers then GetClass("CObjectDispenser", glowEnts) end
+	if teleporters then GetClass("CObjectTeleporter", glowEnts) end
+	if medammo then GetClass("CBaseAnimating", glowEnts) end
 	if players then GetPlayers(glowEnts, weapon) end
 
-	if christmasball then GetChristmasBalls(glowEnts, weapon) end
+	if christmasball then GetChristmasBalls(glowEnts) end
 
 	if #glowEnts == 0 then
 		return

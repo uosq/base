@@ -26,7 +26,7 @@ func main() {
 	http.HandleFunc("/", Handle_GetSettings)
 	go func() { log.Fatal(http.ListenAndServe(":8080", nil)) }()
 
-	app := app.New()
+	app := app.NewWithID("navet.com/base")
 	app.Settings().SetTheme(&myTheme{})
 	window := app.NewWindow("Base")
 	window.Resize(fyne.NewSize(600, 400))
@@ -34,19 +34,19 @@ func main() {
 	window.SetContent(container.NewAppTabs(
 		container.NewTabItem("Aimbot", container.NewVScroll(
 			container.NewVBox(
-				Group("General",
+				GroupV("General",
 					CreateToggle("Enabled", &settings.Aimbot.Enabled),
 					CreateToggle("FOV Indicator", &settings.Aimbot.FovIndicator),
 				),
 
-				Group("Hitscan",
+				GroupV("Hitscan",
 					CreateToggle("Enabled", &settings.Aimbot.Hitscan.Enabled),
 					CreateToggle("Autoshoot", &settings.Aimbot.Hitscan.Autoshoot),
 					CreateKeySelection("Key", &settings.Aimbot.Hitscan.Key),
 					CreateSlider("FOV", &settings.Aimbot.Hitscan.Fov, 0, 180),
 				),
 
-				Group("Projectile",
+				GroupV("Projectile",
 					CreateToggle("Enabled", &settings.Aimbot.Proj.Enabled),
 					CreateToggle("Autoshoot", &settings.Aimbot.Proj.Autoshoot),
 					CreateKeySelection("Key", &settings.Aimbot.Proj.Key),
@@ -58,41 +58,62 @@ func main() {
 
 		container.NewTabItem("Visuals", container.NewVScroll(
 			container.NewVBox(
-				Group("Entity Filter",
-					container.NewHBox(
-						container.NewVBox(
-							CreateToggleFlag("Players", &settings.Glow.Flags, 1),
-							CreateToggleFlag("Weapons", &settings.Glow.Flags, 2),
-							CreateToggleFlag("Sentries", &settings.Glow.Flags, 3),
-							CreateToggleFlag("Dispensers", &settings.Glow.Flags, 4),
+				container.NewBorder(nil, nil, nil, nil,
+					container.NewGridWithColumns(2,
+						GroupV("Entity Filter",
+							container.NewHBox(
+								container.NewVBox(
+									CreateToggleFlag8("Players", &settings.ESP.Filter, 0),
+									CreateToggleFlag8("Weapons", &settings.ESP.Filter, 1),
+									CreateToggleFlag8("Sentries", &settings.ESP.Filter, 2),
+									CreateToggleFlag8("Dispensers", &settings.ESP.Filter, 3),
+								),
+								container.NewVBox(
+									CreateToggleFlag8("Teleporters", &settings.ESP.Filter, 4),
+									CreateToggleFlag8("ChristmasBall", &settings.ESP.Filter, 5),
+									CreateToggleFlag8("MedKit / Ammo", &settings.ESP.Filter, 6),
+								),
+							),
 						),
-						container.NewVBox(
-							CreateToggleFlag("Teleporters", &settings.Glow.Flags, 5),
-							CreateToggleFlag("ChristmasBall", &settings.Glow.Flags, 6),
-							CreateToggleFlag("MedKit / Ammo", &settings.Glow.Flags, 7),
+
+						GroupV("Condition Filter",
+							container.NewHBox(
+								container.NewVBox(
+									CreateToggleFlag8("Cloaked", &settings.ESP.CondFilter, 0),
+									CreateToggleFlag8("Ubercharged", &settings.ESP.CondFilter, 1),
+									CreateToggleFlag8("Jarated", &settings.ESP.CondFilter, 2),
+									CreateToggleFlag8("Kritz", &settings.ESP.CondFilter, 3),
+								),
+
+								container.NewVBox(
+									CreateToggleFlag8("Milked", &settings.ESP.CondFilter, 4),
+									CreateToggleFlag8("Overhealed", &settings.ESP.CondFilter, 5),
+									CreateToggleFlag8("Sapped", &settings.ESP.CondFilter, 6),
+									CreateToggleFlag8("Vaccinator Resist", &settings.ESP.CondFilter, 7),
+								),
+							),
 						),
 					),
 				),
 
-				Group("Glow",
-					CreateToggleFlag("Enabled", &settings.Glow.Flags, 0),
+				GroupV("Glow",
+					CreateToggle("Enabled", &settings.Glow.Enabled),
 					CreateSliderStepped("Blurriness", &settings.Glow.Blurriness, 0, 30, 1.0),
 					CreateSliderStepped("Stencil", &settings.Glow.Stencil, 0, 30, 1.0),
 				),
 
-				Group("ESP",
+				GroupV("ESP",
 					CreateToggle("Enabled", &settings.ESP.Enabled),
 
-					Group("Box",
+					GroupV("Box",
 						CreateToggle("Enabled", &settings.ESP.Box.Enabled),
 						CreateList("Mode", []string{"Solid", "Outlined"}, &settings.ESP.Box.Mode, "Solid"),
 					),
 
-					Group("Health Bar",
+					GroupV("Health Bar",
 						CreateToggle("Enabled", &settings.ESP.HealthBar.Enabled),
-						//CreateList("Mode", []string{"Solid", "Bold", "Thin"}, &settings.ESP.HealthBar, "Solid"),
-						CreateColorPickerButton("Top Color", &settings.ESP.HealthBar.TopColor, window),
-						CreateColorPickerButton("Bottom Color", &settings.ESP.HealthBar.BottomColor, window),
+						CreateColorPickerButton("High Health Color", &settings.ESP.HealthBar.TopColor, window),
+						CreateColorPickerButton("Low Health Color", &settings.ESP.HealthBar.BottomColor, window),
 					),
 				),
 			),

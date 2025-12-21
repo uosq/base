@@ -67,12 +67,13 @@ function lib.Run(cmd, data)
 		currentAimFov = mathlib.Lerp(previousAimFov, SDK.GetSettingsManager().Get().aimbot.hitscan.fov, 0.2)
 		hitscan.Run(cmd, plocal, weapon, data, state)
 	elseif weapon:IsMeleeWeapon() == false then
-		--currentAimFov = SDK.GetSettingsManager().Get().aimbot.proj.fov
 		currentAimFov = mathlib.Lerp(previousAimFov, SDK.GetSettingsManager().Get().aimbot.proj.fov, 0.2)
 		projectile.Run(cmd, plocal, weapon, data, state)
 	else
 		currentAimFov = mathlib.Lerp(previousAimFov, 0, 0.2)
 	end
+
+	SDK.SetAimTarget(state.target)
 end
 
 ---@param plocal Player
