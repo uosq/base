@@ -113,6 +113,14 @@ function lib.Run(settings)
 
 	local condFilter = settings.visuals.conds
 
+	local Name = SDK.bGetFlag(settings.visuals.esp.options, 0)
+	local Class = SDK.bGetFlag(settings.visuals.esp.options, 1)
+	local Health = SDK.bGetFlag(settings.visuals.esp.options, 2)
+	local Distance = SDK.bGetFlag(settings.visuals.esp.options, 3)
+	local Ubercharge = SDK.bGetFlag(settings.visuals.esp.options, 4)
+	local Weapon = SDK.bGetFlag(settings.visuals.esp.options, 5)
+	local SteamID = SDK.bGetFlag(settings.visuals.esp.options, 6)
+
 	draw.SetFont(font)
 	draw.Color(255, 255, 255, 255)
 	for _, target in ipairs(targets) do
@@ -165,15 +173,16 @@ function lib.Run(settings)
 			end
 		end
 
+		local leftIndex = 0
+		local rightIndex = 0
+		local bottomIndex = 0
+		local topIndex = 0
+
 		if condFilter ~= 0 then
 			local player = SDK.Reinterpret(target, CTFPlayer)
 			if player then
 				local conds = GetEntityConds(player, condFilter)
 				if #conds > 0 then
-					local leftIndex = 0
-					local rightIndex = 0
-					local bottomIndex = 0
-					local topIndex = 0
 
 					draw.Color(255, 255, 255, 255)
 					for i = 1, #conds do
@@ -215,6 +224,10 @@ function lib.Run(settings)
 					end
 				end
 			end
+		end
+
+		if Name then
+			
 		end
 
 		::continue::

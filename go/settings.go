@@ -50,6 +50,8 @@ type Visuals struct {
 			TopColor    color.RGBA `json:"topcolor"`    // top color of the gradient
 			BottomColor color.RGBA `json:"bottomcolor"` // bottom color of the gradient
 		} `json:"healthbar"`
+
+		OptionFilter uint8 `json:"options"` // Text: Name, Class, Distance, Ubercharge %, Weapon, SteamID, Health, ??
 	} `json:"esp"`
 
 	Glow struct {
@@ -59,8 +61,9 @@ type Visuals struct {
 	} `json:"glow"`
 
 	Chams struct {
-		Enabled bool    `json:"enabled"`
-		Alpha   float64 `json:"alpha"`
+		Enabled    bool    `json:"enabled"`
+		AlwaysDraw bool    `json:"always"`
+		Alpha      float64 `json:"alpha"`
 	} `json:"chams"`
 
 	Colors struct {
@@ -79,5 +82,4 @@ type Visuals struct {
 	IgnoreFilter uint8 `json:"ignorefilter"` // Cloaked,
 	Filter       uint8 `json:"filter"`       // Entity filter: Player, Sentries, Dispensers, Teleporters, NPCs, Friends, Projectiles, Objective
 	CondFilter   uint8 `json:"conds"`        // Condition filter: Cloaked, Jarated, Ubercharged, Kritz, Milked, Overhealed, Sapped, Vacc Resistance
-	OptionFilter uint8 `json:"options"`      // Text: Name, Class, Distance, Ubercharge %, Weapon, SteamID, Health, ??
 }

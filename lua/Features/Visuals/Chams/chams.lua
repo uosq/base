@@ -9,12 +9,6 @@ local drawModels = {}
 local STUDIO_RENDER = 0x00000001
 local STUDIO_NOSHADOWS = 0x00000080
 
-local nodraw = materials.Create("vapo2", [[UnlitGeneric
-{
-	$no_draw 1
-}
-]])
-
 local mat = materials.Create("vapo", [[UnlitGeneric
 {
 	$basetexture "white"
@@ -35,9 +29,14 @@ function lib.DoPostScreenSpaceEffects(settings)
 
 	local r, g, b = render.GetColorModulation()
 	local blend = render.GetBlend()
+	local znear, zfar = render.GetDepthRange()
 
 	render.ForcedMaterialOverride(mat)
 	render.SetBlend(settings.visuals.chams.alpha/100)
+
+	if settings.visuals.chams.always then
+		render.DepthRange(0, 0.2)
+	end
 
 	for _, player in pairs (targets) do
 		if player:ShouldDraw() then
@@ -64,6 +63,7 @@ function lib.DoPostScreenSpaceEffects(settings)
 	render.SetColorModulation(r, g, b)
 	render.SetBlend(blend)
 	render.ForcedMaterialOverride(nil)
+	render.DepthRange(znear, zfar)
 end
 
 ---@param ctx DrawModelContext
@@ -73,8 +73,11 @@ function lib.DrawModel(ctx)
 		return
 	end
 
+	if ctx:IsDrawingGlow() or ctx:IsDrawingAntiAim() or ctx:IsDrawingBackTrack() then
+		return
+	end
+
 	if not bDrawing then
-		--ctx:ForcedMaterialOverride(nodraw)
 		ctx:SetAlphaModulation(0)
 	end
 end

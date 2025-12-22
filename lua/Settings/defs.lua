@@ -47,6 +47,7 @@
 ---@field enabled boolean
 ---@field box VisualsESPBox
 ---@field healthbar VisualsESPHealthBar
+---@field options integer # uint8 bitmask Name, Class, Distance, Ubercharge %, Weapon, SteamID, Health, ??
 
 ---@class VisualsGlow
 ---@field stencil number
@@ -68,6 +69,7 @@
 ---@class VisualsChams
 ---@field enabled boolean
 ---@field alpha number
+---@field always boolean
 
 ---@class Visuals
 ---@field enabled boolean
@@ -78,4 +80,3 @@
 ---@field ignorefilter integer # uint8 bitmask
 ---@field filter integer # uint8 bitmask (Players, Buildings, NPCs, Projectiles, Objectives, etc.)
 ---@field conds integer # uint8 bitmask (Cloaked, Jarated, Ubercharged, Kritz, Milked, Overhealed, Sapped, Vacc Resist)
----@field options integer # uint8 bitmask Name, Class, Distance, Ubercharge %, Weapon, SteamID, Health, ??

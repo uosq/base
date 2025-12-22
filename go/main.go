@@ -103,16 +103,13 @@ func main() {
 
 					GroupH("Options",
 						container.NewGridWithColumns(4,
-							CreateToggleFlag8("Name", &settings.Visuals.OptionFilter, 0),
-							CreateToggleFlag8("Class", &settings.Visuals.OptionFilter, 1),
-
-							CreateToggleFlag8("Health", &settings.Visuals.OptionFilter, 2),
-							CreateToggleFlag8("Distance", &settings.Visuals.OptionFilter, 3),
-
-							CreateToggleFlag8("Ubercharge", &settings.Visuals.OptionFilter, 4),
-							CreateToggleFlag8("Weapon", &settings.Visuals.OptionFilter, 5),
-
-							CreateToggleFlag8("SteamID", &settings.Visuals.OptionFilter, 6),
+							CreateToggleFlag8("Name", &settings.Visuals.ESP.OptionFilter, 0),
+							CreateToggleFlag8("Class", &settings.Visuals.ESP.OptionFilter, 1),
+							CreateToggleFlag8("Health", &settings.Visuals.ESP.OptionFilter, 2),
+							CreateToggleFlag8("Distance", &settings.Visuals.ESP.OptionFilter, 3),
+							CreateToggleFlag8("Ubercharge", &settings.Visuals.ESP.OptionFilter, 4),
+							CreateToggleFlag8("Weapon", &settings.Visuals.ESP.OptionFilter, 5),
+							CreateToggleFlag8("SteamID", &settings.Visuals.ESP.OptionFilter, 6),
 						),
 
 						// still have 1 bit left
@@ -132,6 +129,7 @@ func main() {
 
 				GroupV("Chams",
 					CreateToggle("Enabled", &settings.Visuals.Chams.Enabled),
+					CreateToggle("Always Visible", &settings.Visuals.Chams.AlwaysDraw),
 					CreateSlider("Alpha (%)", &settings.Visuals.Chams.Alpha, 0, 100),
 				),
 
