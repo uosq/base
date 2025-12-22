@@ -318,11 +318,7 @@ local function RunSeconds(player, time_seconds, lazyness)
 		Friction(velocity, is_on_ground, tickinterval)
 
 		if is_on_ground then
-			if wishspeed > 0 then
-				wishdir = velocity / speed
-				Accelerate(velocity, wishdir, wishspeed, sv_accelerate, tickinterval)
-			end
-
+			Accelerate(velocity, wishdir, wishspeed, sv_accelerate, tickinterval)
 			velocity.z = 0
 		else
 			AirAccelerate(velocity, wishdir, maxspeed, sv_airaccelerate, tickinterval, 0, player)

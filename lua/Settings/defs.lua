@@ -56,6 +56,14 @@
 ---@class VisualsColors
 ---@field redteam ColorRGBA
 ---@field blueteam ColorRGBA
+---@field ammopack ColorRGBA
+---@field medkit ColorRGBA
+---@field cphysicsprop ColorRGBA
+---@field weapon ColorRGBA
+---@field friend ColorRGBA
+---@field priority ColorRGBA
+---@field aimtarget ColorRGBA
+---@field localplayer ColorRGBA
 
 ---@class VisualsChams
 ---@field enabled boolean

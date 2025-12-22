@@ -64,8 +64,16 @@ type Visuals struct {
 	} `json:"chams"`
 
 	Colors struct {
-		RedTeam  color.RGBA `json:"redteam"`
-		BlueTeam color.RGBA `json:"blueteam"`
+		RedTeam       color.RGBA `json:"redteam"`
+		BlueTeam      color.RGBA `json:"blueteam"`
+		AmmoPack      color.RGBA `json:"ammopack"`
+		MedKit        color.RGBA `json:"medkit"`
+		SmissmassBall color.RGBA `json:"cphysicsprop"`
+		Weapon        color.RGBA `json:"weapon"`
+		Friend        color.RGBA `json:"friend"`
+		Priority      color.RGBA `json:"priority"`
+		AimTarget     color.RGBA `json:"aimtarget"`
+		LocalPlayer   color.RGBA `json:"localplayer"`
 	} `json:"colors"`
 
 	IgnoreFilter uint8 `json:"ignorefilter"` // Cloaked,

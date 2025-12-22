@@ -13,14 +13,13 @@ local function DoPostScreenSpaceEffects()
 
 	local settings = settingsManager.Get()
 
-	if settings.visuals.glow.enabled then
-		glow.Run(settings)
-	end
-
 	if settings.visuals.chams.enabled then
 		chams.DoPostScreenSpaceEffects(settings)
 	end
 
+	if settings.visuals.glow.enabled then
+		glow.Run(settings)
+	end
 end
 
 callbacks.Register("DoPostScreenSpaceEffects", DoPostScreenSpaceEffects)

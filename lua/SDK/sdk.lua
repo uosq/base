@@ -112,13 +112,6 @@ function sdk.GetPlayerList()
 	return list
 end
 
---[[
----@param entity Entity?
----@return Weapon?
-function sdk.AsWeapon(entity)
-	return weaponWrap.Get(entity)
-end]]
-
 function sdk.GetInputLib()
 	return inputlib
 end
@@ -324,7 +317,7 @@ end
 
 ---@param entity Entity
 function sdk.GetColor(entity)
-	return colorManager.GetColor(entity, aimTarget)
+	return colorManager.GetColor(settingsManager.Get(), entity, aimTarget)
 end
 
 return sdk

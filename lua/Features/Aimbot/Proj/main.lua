@@ -143,7 +143,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	local validTarget, validAngle = nil, nil
 
 	local weaponOffset = GetPositionOffset(plocal, weapon)
-	local extraTime = (data.aimbot.proj.compensate and weapon:GetWeaponID() == TF_WEAPON_PIPEBOMBLAUNCHER) and 0.7 or 0
+	local extraTime = (data.aimbot.proj.compensate and weapon:GetWeaponID() == TF_WEAPON_PIPEBOMBLAUNCHER) and 1.4 or 0
 
 	for _, target in ipairs (validTargets) do
 		local distance = (localPos - target[1]:GetWorldSpaceCenter()):Length()
