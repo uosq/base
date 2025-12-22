@@ -20,6 +20,10 @@ local mat = materials.Create("vapo", [[UnlitGeneric
 	$basetexture "white"
 }]])
 
+function lib.IsDrawing()
+	return bDrawing
+end
+
 ---@param settings Settings
 function lib.DoPostScreenSpaceEffects(settings)
 	drawModels = {}
@@ -47,6 +51,8 @@ function lib.DoPostScreenSpaceEffects(settings)
 			local child = player:GetMoveChild()
 			while child do
 				drawModels[child:GetIndex()] = true
+				color = SDK.GetColor(child)
+				render.SetColorModulation(color[1], color[2], color[3])
 				child:DrawModel(STUDIO_RENDER | STUDIO_NOSHADOWS)
 				child = child:GetMovePeer()
 			end
@@ -68,7 +74,8 @@ function lib.DrawModel(ctx)
 	end
 
 	if not bDrawing then
-		ctx:ForcedMaterialOverride(nodraw)
+		--ctx:ForcedMaterialOverride(nodraw)
+		ctx:SetAlphaModulation(0)
 	end
 end
 

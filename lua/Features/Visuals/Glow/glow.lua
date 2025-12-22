@@ -9,24 +9,25 @@ local lib = {}
 local SDK = require("SDK.sdk")
 
 --- materials
-local m_pMatGlowColor = nil
-local m_pMatHaloAddToScreen = nil
-local m_pMatBlurX = nil
-local m_pMatBlurY = nil
+local MatGlowColor = nil
+local MatHaloAddToScreen = nil
+local MatBlurX = nil
+local MatBlurY = nil
 local pRtFullFrame = nil
-local m_pGlowBuffer1 = nil
-local m_pGlowBuffer2 = nil
+local GlowBuffer1 = nil
+local GlowBuffer2 = nil
+local bDrawing = false
 
 local STUDIO_RENDER = 0x00000001
 local STUDIO_NOSHADOWS = 0x00000080
 
 local function InitMaterials()
-	if m_pMatGlowColor == nil then
-		m_pMatGlowColor = materials.Find("dev/glow_color")
+	if MatGlowColor == nil then
+		MatGlowColor = materials.Find("dev/glow_color")
 	end
 
-	if m_pMatHaloAddToScreen == nil then
-		m_pMatHaloAddToScreen = materials.Create("GlowMaterialHalo",
+	if MatHaloAddToScreen == nil then
+		MatHaloAddToScreen = materials.Create("GlowMaterialHalo",
 		[[UnlitGeneric
 		{
 			$basetexture "GlowBuffer1"
@@ -34,16 +35,16 @@ local function InitMaterials()
 		}]])
 	end
 
-	if m_pMatBlurX == nil then
-		m_pMatBlurX = materials.Create("GlowMatBlurX",
+	if MatBlurX == nil then
+		MatBlurX = materials.Create("GlowMatBlurX",
 		[[BlurFilterX
 		{
 			$basetexture "GlowBuffer1"
 		}]]);
 	end
 
-	if m_pMatBlurY == nil then
-		m_pMatBlurY = materials.Create("GlowMatBlurY",
+	if MatBlurY == nil then
+		MatBlurY = materials.Create("GlowMatBlurY",
 		[[BlurFilterY
 		{
 			$basetexture "GlowBuffer2"
@@ -54,16 +55,16 @@ local function InitMaterials()
 		pRtFullFrame = materials.FindTexture("_rt_FullFrameFB", "RenderTargets", true);
 	end
 
-	if m_pGlowBuffer1 == nil then
-		m_pGlowBuffer1 = materials.CreateTextureRenderTarget(
+	if GlowBuffer1 == nil then
+		GlowBuffer1 = materials.CreateTextureRenderTarget(
 			"GlowBuffer1",
 			pRtFullFrame:GetActualWidth(),
 			pRtFullFrame:GetActualHeight()
 		)
 	end
 
-	if m_pGlowBuffer2 == nil then
-		m_pGlowBuffer2 = materials.CreateTextureRenderTarget(
+	if GlowBuffer2 == nil then
+		GlowBuffer2 = materials.CreateTextureRenderTarget(
 			"GlowBuffer2",
 			pRtFullFrame:GetActualWidth(),
 			pRtFullFrame:GetActualHeight()
@@ -72,14 +73,20 @@ local function InitMaterials()
 end
 
 local function DrawEntities(ents)
+	bDrawing = false
+
 	for _, info in pairs (ents) do
 		local entity = entities.GetByIndex(info[1])
 		if entity then
 			local color = info[2]
 			render.SetColorModulation(color[1], color[2], color[3])
+			bDrawing = true
 			entity:DrawModel(STUDIO_RENDER | STUDIO_NOSHADOWS)
+			bDrawing = false
 		end
 	end
+
+	bDrawing = false
 end
 
 ---@param outTable table
@@ -186,7 +193,7 @@ function lib.Run(settings)
 	do
 		render.SetStencilEnable(true)
 
-		render.ForcedMaterialOverride(m_pMatGlowColor)
+		render.ForcedMaterialOverride(MatGlowColor)
 		local savedBlend = render.GetBlend()
 		render.SetBlend(0)
 
@@ -212,13 +219,13 @@ function lib.Run(settings)
 		local savedBlend = render.GetBlend()
 		render.SetBlend(1.0)
 
-		render.SetRenderTarget(m_pGlowBuffer1)
+		render.SetRenderTarget(GlowBuffer1)
 		render.Viewport(0, 0, w, h)
 
 		render.ClearColor3ub(0, 0, 0)
 		render.ClearBuffers(true, false, false)
 
-		render.ForcedMaterialOverride(m_pMatGlowColor)
+		render.ForcedMaterialOverride(MatGlowColor)
 
 		DrawEntities(glowEnts)
 
@@ -236,10 +243,10 @@ function lib.Run(settings)
 
 		-- More blur iterations = blurrier (does this word exist?) glow
 		for i = 1, settings.visuals.glow.blurriness do
-			render.SetRenderTarget(m_pGlowBuffer2)
-			render.DrawScreenSpaceRectangle(m_pMatBlurX, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h)
-			render.SetRenderTarget(m_pGlowBuffer1)
-			render.DrawScreenSpaceRectangle(m_pMatBlurY, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h)
+			render.SetRenderTarget(GlowBuffer2)
+			render.DrawScreenSpaceRectangle(MatBlurX, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h)
+			render.SetRenderTarget(GlowBuffer1)
+			render.DrawScreenSpaceRectangle(MatBlurY, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h)
 		end
 
 		render.PopRenderTargetAndViewport()
@@ -273,25 +280,29 @@ function lib.Run(settings)
 		--- https://github.com/rei-2/Amalgam/blob/fce4740bf3af0799064bf6c8fbeaa985151b708c/Amalgam/src/Features/Visuals/Glow/Glow.cpp#L65
 		if settings.visuals.glow.stencil > 0 then
 			local iSide = (settings.visuals.glow.stencil + 1) // 2
-			render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, -iSide, 0, w, h, 0, 0, w - 1, h - 1, w, h);
-			render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, 0, -iSide, w, h, 0, 0, w - 1, h - 1, w, h);
-			render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, iSide, 0, w, h, 0, 0, w - 1, h - 1, w, h);
-			render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, 0, iSide, w, h, 0, 0, w - 1, h - 1, w, h);
+			render.DrawScreenSpaceRectangle(MatHaloAddToScreen, -iSide, 0, w, h, 0, 0, w - 1, h - 1, w, h);
+			render.DrawScreenSpaceRectangle(MatHaloAddToScreen, 0, -iSide, w, h, 0, 0, w - 1, h - 1, w, h);
+			render.DrawScreenSpaceRectangle(MatHaloAddToScreen, iSide, 0, w, h, 0, 0, w - 1, h - 1, w, h);
+			render.DrawScreenSpaceRectangle(MatHaloAddToScreen, 0, iSide, w, h, 0, 0, w - 1, h - 1, w, h);
 			local iCorner = settings.visuals.glow.stencil // 2
 			if (iCorner > 0) then
-				render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, -iCorner, -iCorner, w, h, 0, 0, w - 1, h - 1, w, h);
-				render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, iCorner, iCorner, w, h, 0, 0, w - 1, h - 1, w, h);
-				render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, iCorner, -iCorner, w, h, 0, 0, w - 1, h - 1, w, h);
-				render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, -iCorner, iCorner, w, h, 0, 0, w - 1, h - 1, w, h);
+				render.DrawScreenSpaceRectangle(MatHaloAddToScreen, -iCorner, -iCorner, w, h, 0, 0, w - 1, h - 1, w, h);
+				render.DrawScreenSpaceRectangle(MatHaloAddToScreen, iCorner, iCorner, w, h, 0, 0, w - 1, h - 1, w, h);
+				render.DrawScreenSpaceRectangle(MatHaloAddToScreen, iCorner, -iCorner, w, h, 0, 0, w - 1, h - 1, w, h);
+				render.DrawScreenSpaceRectangle(MatHaloAddToScreen, -iCorner, iCorner, w, h, 0, 0, w - 1, h - 1, w, h);
 			end
 		end
 
 		if settings.visuals.glow.blurriness > 0 then
-			render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h);
+			render.DrawScreenSpaceRectangle(MatHaloAddToScreen, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h);
 		end
 
 		render.SetStencilEnable(false)
 	end
+end
+
+function lib.IsDrawing()
+	return bDrawing
 end
 
 return lib
