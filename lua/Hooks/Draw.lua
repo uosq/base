@@ -2,7 +2,7 @@
 --local hookManager = require("SDK.hookMgr")
 
 local Aimbot = require("Features.Aimbot.aimbot")
-local ESP = require("Features.ESP.esp")
+local ESP = require("Features.Visuals.ESP.esp")
 
 local SDK = require("SDK.sdk")
 local settingsManager = SDK.GetSettingsManager()
@@ -16,14 +16,18 @@ local function OnDraw()
 		return
 	end
 
+	if engine.IsTakingScreenshot() then
+		return
+	end
+
 	if settingsManager.GetStatus() == false then
 		return
 	end
 
 	local settings = settingsManager.Get()
 
-	Aimbot.Draw()
 	ESP.Run(settings)
+	Aimbot.Draw()
 end
 
 callbacks.Register("Draw", OnDraw)

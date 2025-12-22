@@ -17,6 +17,9 @@ local pRtFullFrame = nil
 local m_pGlowBuffer1 = nil
 local m_pGlowBuffer2 = nil
 
+local STUDIO_RENDER = 0x00000001
+local STUDIO_NOSHADOWS = 0x00000080
+
 local function InitMaterials()
 	if m_pMatGlowColor == nil then
 		m_pMatGlowColor = materials.Find("dev/glow_color")
@@ -66,30 +69,6 @@ local function InitMaterials()
 			pRtFullFrame:GetActualHeight()
 		)
 	end
-end
-
-local STUDIO_RENDER = 0x00000001
-local STUDIO_NOSHADOWS = 0x00000080
-
-local function GetGuiColor(option)
-    local value = gui.GetValue(option)
-    if value == 255 then
-        return nil
-    elseif value == -1 then
-	return {1, 1, 1, 1}
-    end
-
-    -- convert signed 32-bit int to unsigned 32-bit
-    if value < 0 then
-        value = value + 0x100000000
-    end
-
-    local r = (value >> 24) & 0xFF
-    local g = (value >> 16) & 0xFF
-    local b = (value >> 8)  & 0xFF
-    local a = value & 0xFF
-
-    return { r * 0.003921, g * 0.003921, b * 0.003921, a * 0.003921 }
 end
 
 local function DrawEntities(ents)
@@ -169,11 +148,11 @@ function lib.Run(settings)
 		return
 	end
 
-	if settings.glow.enabled == false then
+	if settings.visuals.glow.enabled == false then
 		return
 	end
 
-	if settings.glow.blurriness == 0 and settings.glow.stencil == 0 then
+	if settings.visuals.glow.blurriness == 0 and settings.visuals.glow.stencil == 0 then
 		return
 	end
 
@@ -181,13 +160,13 @@ function lib.Run(settings)
 
 	local glowEnts = {}
 
-	local players = SDK.bGetFlag(settings.esp.filter, 0)
-	local weapon = SDK.bGetFlag(settings.esp.filter, 1)
-	local sentries = SDK.bGetFlag(settings.esp.filter, 2)
-	local dispensers = SDK.bGetFlag(settings.esp.filter, 3)
-	local teleporters = SDK.bGetFlag(settings.esp.filter, 4)
-	local christmasball = SDK.bGetFlag(settings.esp.filter, 5)
-	local medammo = SDK.bGetFlag(settings.esp.filter, 6)
+	local players = SDK.bGetFlag(settings.visuals.filter, 0)
+	local weapon = SDK.bGetFlag(settings.visuals.filter, 1)
+	local sentries = SDK.bGetFlag(settings.visuals.filter, 2)
+	local dispensers = SDK.bGetFlag(settings.visuals.filter, 3)
+	local teleporters = SDK.bGetFlag(settings.visuals.filter, 4)
+	local christmasball = SDK.bGetFlag(settings.visuals.filter, 5)
+	local medammo = SDK.bGetFlag(settings.visuals.filter, 6)
 
 	if sentries then GetClass("CObjectSentrygun", glowEnts) end
 	if dispensers then GetClass("CObjectDispenser", glowEnts) end
@@ -251,12 +230,12 @@ function lib.Run(settings)
 	end
 
 	--- Blur pass
-	if settings.glow.blurriness > 0 then
+	if settings.visuals.glow.blurriness > 0 then
 		render.PushRenderTargetAndViewport()
 		render.Viewport(0, 0, w, h)
 
 		-- More blur iterations = blurrier (does this word exist?) glow
-		for i = 1, settings.glow.blurriness do
+		for i = 1, settings.visuals.glow.blurriness do
 			render.SetRenderTarget(m_pGlowBuffer2)
 			render.DrawScreenSpaceRectangle(m_pMatBlurX, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h)
 			render.SetRenderTarget(m_pGlowBuffer1)
@@ -292,13 +271,13 @@ function lib.Run(settings)
 
 		--- pasted from amalgam
 		--- https://github.com/rei-2/Amalgam/blob/fce4740bf3af0799064bf6c8fbeaa985151b708c/Amalgam/src/Features/Visuals/Glow/Glow.cpp#L65
-		if settings.glow.stencil > 0 then
-			local iSide = (settings.glow.stencil + 1) // 2
+		if settings.visuals.glow.stencil > 0 then
+			local iSide = (settings.visuals.glow.stencil + 1) // 2
 			render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, -iSide, 0, w, h, 0, 0, w - 1, h - 1, w, h);
 			render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, 0, -iSide, w, h, 0, 0, w - 1, h - 1, w, h);
 			render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, iSide, 0, w, h, 0, 0, w - 1, h - 1, w, h);
 			render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, 0, iSide, w, h, 0, 0, w - 1, h - 1, w, h);
-			local iCorner = settings.glow.stencil // 2
+			local iCorner = settings.visuals.glow.stencil // 2
 			if (iCorner > 0) then
 				render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, -iCorner, -iCorner, w, h, 0, 0, w - 1, h - 1, w, h);
 				render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, iCorner, iCorner, w, h, 0, 0, w - 1, h - 1, w, h);
@@ -307,7 +286,7 @@ function lib.Run(settings)
 			end
 		end
 
-		if settings.glow.blurriness > 0 then
+		if settings.visuals.glow.blurriness > 0 then
 			render.DrawScreenSpaceRectangle(m_pMatHaloAddToScreen, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h);
 		end
 

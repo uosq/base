@@ -1,4 +1,5 @@
-local glow = require("Features.Glow.glow")
+local glow = require("Features.Visuals.Glow.glow")
+local chams = require("Features.Visuals.Chams.chams")
 local settingsManager = require("Settings.settings")
 
 local function DoPostScreenSpaceEffects()
@@ -12,7 +13,14 @@ local function DoPostScreenSpaceEffects()
 
 	local settings = settingsManager.Get()
 
-	glow.Run(settings)
+	if settings.visuals.glow.enabled then
+		glow.Run(settings)
+	end
+
+	if settings.visuals.chams.enabled then
+		chams.DoPostScreenSpaceEffects(settings)
+	end
+
 end
 
 callbacks.Register("DoPostScreenSpaceEffects", DoPostScreenSpaceEffects)

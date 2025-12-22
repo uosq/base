@@ -16,6 +16,18 @@ function Player.Get(entity)
 	return setmetatable({__handle = entity}, Player)
 end
 
+function Player:IsEnemy()
+	local plocal = entities.GetLocalPlayer()
+	if plocal == nil then
+		return false --- enemy unless we exist
+	end
+
+	local localteam = plocal:GetTeamNumber()
+	local ourteam = self:GetTeamNumber()
+
+	return localteam ~= ourteam
+end
+
 --- fuckin hack until i make other classes like BaseEntity
 function Player:IsPlayer()
 	return self.__handle:IsPlayer()

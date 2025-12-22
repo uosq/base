@@ -1,7 +1,6 @@
 local aimbot = require("Features.Aimbot.aimbot")
 local SDK = require("SDK.sdk")
 local settings = SDK.GetSettingsManager()
---local hookManager = require("SDK.hookMgr")
 local angleManager = SDK.GetAngleManager()
 local chokedManager = SDK.GetChokedLib()
 

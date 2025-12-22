@@ -60,61 +60,79 @@ func main() {
 			container.NewVBox(
 				container.NewBorder(nil, nil, nil, nil,
 					container.NewGridWithColumns(2,
-						GroupV("Entity Filter",
-							container.NewHBox(
-								container.NewVBox(
-									CreateToggleFlag8("Players", &settings.ESP.Filter, 0),
-									CreateToggleFlag8("Weapons", &settings.ESP.Filter, 1),
-									CreateToggleFlag8("Sentries", &settings.ESP.Filter, 2),
-									CreateToggleFlag8("Dispensers", &settings.ESP.Filter, 3),
-								),
-								container.NewVBox(
-									CreateToggleFlag8("Teleporters", &settings.ESP.Filter, 4),
-									CreateToggleFlag8("ChristmasBall", &settings.ESP.Filter, 5),
-									CreateToggleFlag8("MedKit / Ammo", &settings.ESP.Filter, 6),
-								),
+						GroupH("Entity Filter",
+							container.NewVBox(
+								CreateToggleFlag8("Players", &settings.Visuals.Filter, 0),
+								CreateToggleFlag8("Weapons", &settings.Visuals.Filter, 1),
+								CreateToggleFlag8("Sentries", &settings.Visuals.Filter, 2),
+								CreateToggleFlag8("Dispensers", &settings.Visuals.Filter, 3),
+							),
+							container.NewVBox(
+								CreateToggleFlag8("Teleporters", &settings.Visuals.Filter, 4),
+								CreateToggleFlag8("ChristmasBall", &settings.Visuals.Filter, 5),
+								CreateToggleFlag8("MedKit / Ammo", &settings.Visuals.Filter, 6),
 							),
 						),
 
-						GroupV("Condition Filter",
-							container.NewHBox(
-								container.NewVBox(
-									CreateToggleFlag8("Cloaked", &settings.ESP.CondFilter, 0),
-									CreateToggleFlag8("Ubercharged", &settings.ESP.CondFilter, 1),
-									CreateToggleFlag8("Jarated", &settings.ESP.CondFilter, 2),
-									CreateToggleFlag8("Kritz", &settings.ESP.CondFilter, 3),
-								),
+						GroupH("Condition Filter",
+							container.NewVBox(
+								CreateToggleFlag8("Cloaked", &settings.Visuals.CondFilter, 0),
+								CreateToggleFlag8("Ubercharged", &settings.Visuals.CondFilter, 1),
+								CreateToggleFlag8("Jarated", &settings.Visuals.CondFilter, 2),
+								CreateToggleFlag8("Kritz", &settings.Visuals.CondFilter, 3),
+							),
 
-								container.NewVBox(
-									CreateToggleFlag8("Milked", &settings.ESP.CondFilter, 4),
-									CreateToggleFlag8("Overhealed", &settings.ESP.CondFilter, 5),
-									CreateToggleFlag8("Sapped", &settings.ESP.CondFilter, 6),
-									CreateToggleFlag8("Vaccinator Resist", &settings.ESP.CondFilter, 7),
-								),
+							container.NewVBox(
+								CreateToggleFlag8("Milked", &settings.Visuals.CondFilter, 4),
+								CreateToggleFlag8("Overhealed", &settings.Visuals.CondFilter, 5),
+								CreateToggleFlag8("Sapped", &settings.Visuals.CondFilter, 6),
+								CreateToggleFlag8("Vaccinator Resist", &settings.Visuals.CondFilter, 7),
 							),
 						),
 					),
 				),
 
 				GroupV("Glow",
-					CreateToggle("Enabled", &settings.Glow.Enabled),
-					CreateSliderStepped("Blurriness", &settings.Glow.Blurriness, 0, 30, 1.0),
-					CreateSliderStepped("Stencil", &settings.Glow.Stencil, 0, 30, 1.0),
+					CreateToggle("Enabled", &settings.Visuals.Glow.Enabled),
+					CreateSliderStepped("Blurriness", &settings.Visuals.Glow.Blurriness, 0, 30, 1.0),
+					CreateSliderStepped("Stencil", &settings.Visuals.Glow.Stencil, 0, 30, 1.0),
 				),
 
 				GroupV("ESP",
-					CreateToggle("Enabled", &settings.ESP.Enabled),
+					CreateToggle("Enabled", &settings.Visuals.ESP.Enabled),
+
+					GroupH("Options",
+						container.NewGridWithColumns(4,
+							CreateToggleFlag8("Name", &settings.Visuals.OptionFilter, 0),
+							CreateToggleFlag8("Class", &settings.Visuals.OptionFilter, 1),
+
+							CreateToggleFlag8("Health", &settings.Visuals.OptionFilter, 2),
+							CreateToggleFlag8("Distance", &settings.Visuals.OptionFilter, 3),
+
+							CreateToggleFlag8("Ubercharge", &settings.Visuals.OptionFilter, 4),
+							CreateToggleFlag8("Weapon", &settings.Visuals.OptionFilter, 5),
+
+							CreateToggleFlag8("SteamID", &settings.Visuals.OptionFilter, 6),
+						),
+
+						// still have 1 bit left
+					),
 
 					GroupV("Box",
-						CreateToggle("Enabled", &settings.ESP.Box.Enabled),
-						CreateList("Mode", []string{"Solid", "Outlined"}, &settings.ESP.Box.Mode, "Solid"),
+						CreateToggle("Enabled", &settings.Visuals.ESP.Box.Enabled),
+						CreateList("Mode", []string{"Solid", "Outlined"}, &settings.Visuals.ESP.Box.Mode, "Solid"),
 					),
 
 					GroupV("Health Bar",
-						CreateToggle("Enabled", &settings.ESP.HealthBar.Enabled),
-						CreateColorPickerButton("High Health Color", &settings.ESP.HealthBar.TopColor, window),
-						CreateColorPickerButton("Low Health Color", &settings.ESP.HealthBar.BottomColor, window),
+						CreateToggle("Enabled", &settings.Visuals.ESP.HealthBar.Enabled),
+						CreateColorPickerButton("High Health Color", &settings.Visuals.ESP.HealthBar.TopColor, window),
+						CreateColorPickerButton("Low Health Color", &settings.Visuals.ESP.HealthBar.BottomColor, window),
 					),
+				),
+
+				GroupV("Chams",
+					CreateToggle("Enabled", &settings.Visuals.Chams.Enabled),
+					CreateSlider("Alpha (%)", &settings.Visuals.Chams.Alpha, 0, 100),
 				),
 			),
 		)),

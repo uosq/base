@@ -3,9 +3,8 @@ package main
 import "image/color"
 
 type Settings struct {
-	Aimbot Aimbot `json:"aimbot"`
-	Glow   Glow   `json:"glow"`
-	ESP    ESP    `json:"esp"`
+	Aimbot  Aimbot  `json:"aimbot"`
+	Visuals Visuals `json:"visuals"`
 }
 
 type Aimbot struct {
@@ -35,39 +34,42 @@ type Aimbot struct {
 	} `json:"melee"`
 }
 
-type Glow struct {
-	Stencil    float64 `json:"stencil"`
-	Blurriness float64 `json:"blurriness"`
-	Enabled    bool    `json:"enabled"`
-	/*Enabled    bool    `json:"enabled"` 0
-	Weapon        bool    `json:"weapon"` 1
-	Players       bool    `json:"players"` 2
-	Sentries      bool    `json:"sentries"` 3
-	Dispensers    bool    `json:"dispensers"` 4
-	Teleporters   bool    `json:"teleporters"` 5
-	MedAmmo       bool    `json:"medammo"` 6
-	ChristmasBall bool    `json:"christmasball"` 7*/
-}
-
-type ESP struct {
+type Visuals struct {
 	Enabled bool `json:"enabled"`
+
+	ESP struct {
+		Enabled bool `json:"enabled"`
+
+		Box struct {
+			Enabled bool   `json:"enabled"`
+			Mode    string `json:"mode"` // modes: solid, outlined
+		} `json:"box"`
+
+		HealthBar struct {
+			Enabled     bool       `json:"enabled"`
+			TopColor    color.RGBA `json:"topcolor"`    // top color of the gradient
+			BottomColor color.RGBA `json:"bottomcolor"` // bottom color of the gradient
+		} `json:"healthbar"`
+	} `json:"esp"`
+
+	Glow struct {
+		Stencil    float64 `json:"stencil"`
+		Blurriness float64 `json:"blurriness"`
+		Enabled    bool    `json:"enabled"`
+	} `json:"glow"`
+
+	Chams struct {
+		Enabled bool    `json:"enabled"`
+		Alpha   float64 `json:"alpha"`
+	} `json:"chams"`
 
 	Colors struct {
 		RedTeam  color.RGBA `json:"redteam"`
 		BlueTeam color.RGBA `json:"blueteam"`
 	} `json:"colors"`
 
-	Box struct {
-		Enabled bool   `json:"enabled"`
-		Mode    string `json:"mode"` // modes: solid, outlined
-	} `json:"box"`
-
-	HealthBar struct {
-		Enabled     bool       `json:"enabled"`
-		TopColor    color.RGBA `json:"topcolor"`    // top color of the gradient
-		BottomColor color.RGBA `json:"bottomcolor"` // bottom color of the gradient
-	} `json:"healthbar"`
-
-	Filter     uint8 `json:"filter"` // Entity filter: Player, Sentries, Dispensers, Teleporters, NPCs, Friends, Projectiles, Objective
-	CondFilter uint8 `json:"conds"`  // Condition filter: Cloaked, Jarated, Ubercharged, Kritz, Milked, Overhealed, Sapped, Vacc Resistance
+	IgnoreFilter uint8 `json:"ignorefilter"` // Cloaked,
+	Filter       uint8 `json:"filter"`       // Entity filter: Player, Sentries, Dispensers, Teleporters, NPCs, Friends, Projectiles, Objective
+	CondFilter   uint8 `json:"conds"`        // Condition filter: Cloaked, Jarated, Ubercharged, Kritz, Milked, Overhealed, Sapped, Vacc Resistance
+	OptionFilter uint8 `json:"options"`      // Text: Name, Class, Distance, Ubercharge %, Weapon, SteamID, Health, ??
 }

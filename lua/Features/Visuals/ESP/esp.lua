@@ -1,5 +1,6 @@
 local SDK = require("SDK.sdk")
 local CTFPlayer = SDK.GetPlayerClass()
+local Helper = require("Features.Visuals.Generic.generic")
 
 local lib = {}
 local fontSize = 12
@@ -16,7 +17,7 @@ Sapped			6
 Vaccinator Resist	7
 ]]
 
-local width = 3
+local healthBarWidth = 3
 local gap = 2
 
 ---@enum CondPositions
@@ -91,87 +92,26 @@ local function GetEntityConds(entity, condFilter)
 	return list
 end
 
----@param entity Entity
-local function IsValidEntity(entity)
-	if entity:IsDormant() then
-		return false
-	end
-
-	if not entity:IsAlive() or (entity:IsPlayer() == false and entity:GetHealth() <= 0) then
-		return false
-	end
-
-	return true
-end
-
----@param settings Settings
----@return Entity[]
-local function GetTargets(settings)
-	local targets = {}
-
-	local entityFilter = settings.esp.filter
-	--local condFilter = settings.esp.conds
-
-	--- players
-	if SDK.bGetFlag(entityFilter, 0) then
-		for _, entity in pairs(entities.FindByClass("CTFPlayer")) do
-			if IsValidEntity(entity) then
-				targets[#targets+1] = entity
-			end
-		end
-	end
-
-	--- sentries
-	if SDK.bGetFlag(entityFilter, 2) then
-		for _, entity in pairs(entities.FindByClass("CObjectSentrygun")) do
-			print(entity:GetClass())
-			if IsValidEntity(entity) then
-				targets[#targets+1] = entity
-			end
-		end
-	end
-
-	--- dispensers
-	if SDK.bGetFlag(entityFilter, 3) then
-		for _, entity in pairs(entities.FindByClass("CObjectDispenser")) do
-			if IsValidEntity(entity) then
-				targets[#targets+1] = entity
-			end
-		end
-	end
-
-	--- teleporters
-	if SDK.bGetFlag(entityFilter, 4) then
-		for _, entity in pairs(entities.FindByClass("CObjectTeleporter")) do
-			if IsValidEntity(entity) then
-				targets[#targets+1] = entity
-			end
-		end
-	end
-
-	return targets
-end
-
 --- Call on Draw
 ---@param settings Settings
 function lib.Run(settings)
-	if settings.esp.enabled == false then
+	if settings.visuals.esp.enabled == false then
 		return
 	end
 
-	local targets = GetTargets(settings)
+	local targets = Helper:GetTargets(settings)
 	if #targets == 0 then
 		return
 	end
 
-	local boxEnabled = settings.esp.box.enabled
-	local boxOutlined = settings.esp.box.mode == "Outlined"
+	local boxEnabled = settings.visuals.esp.box.enabled
+	local boxOutlined = settings.visuals.esp.box.mode == "Outlined"
 
-	local healthBarEnabled = settings.esp.healthbar.enabled
-	local healthBarTopColor = settings.esp.healthbar.topcolor
-	local healthBarBottomColor = settings.esp.healthbar.bottomcolor
+	local healthBarEnabled = settings.visuals.esp.healthbar.enabled
+	local healthBarTopColor = settings.visuals.esp.healthbar.topcolor
+	local healthBarBottomColor = settings.visuals.esp.healthbar.bottomcolor
 
-	local condFilter = settings.esp.conds
+	local condFilter = settings.visuals.conds
 
 	draw.SetFont(font)
 	draw.Color(255, 255, 255, 255)
@@ -186,7 +126,7 @@ function lib.Run(settings)
 
 		--- feet - head because feet is probably in a higher screen Y than head
 		local h = math.abs(feetScreenPos[2] - headPos[2])
-		local w = target:IsPlayer() and (h * 0.3) // 1 or (h * 0.2) // 1
+		local w = target:IsPlayer() and (h * 0.3) // 1 or (h * 0.3) // 1
 
 		if boxEnabled then
 			local color = SDK.GetColor(target)
@@ -201,27 +141,27 @@ function lib.Run(settings)
 		end
 
 		if healthBarEnabled then
-			local x, y = feetScreenPos[1] - w - width - gap, headPos[2]
+			local x, y = feetScreenPos[1] - w - healthBarWidth - gap, headPos[2]
 
 			draw.Color(40, 40, 40, 255)
-			draw.OutlinedRect(x - 1, y - 1, x + width + 1, y + h + 1)
+			draw.OutlinedRect(x - 1, y - 1, x + healthBarWidth + 1, y + h + 1)
 
 			draw.Color(healthBarBottomColor.R, healthBarBottomColor.G, healthBarBottomColor.B, 255)
-			draw.FilledRectFade(x, y, x + width, y + h, 0, 255, false)
+			draw.FilledRectFade(x, y, x + healthBarWidth, y + h, 0, 255, false)
 
 			draw.Color(healthBarTopColor.R, healthBarTopColor.G, healthBarTopColor.B, 255)
-			draw.FilledRectFade(x, y, x + width, y + h, 255, 0, false)
+			draw.FilledRectFade(x, y, x + healthBarWidth, y + h, 255, 0, false)
 
 			local percent = math.min(target:GetHealth()/target:GetMaxHealth(), 1)
 			draw.Color(40, 40, 40, 255)
-			draw.FilledRect(x, y, x + width, y + h - (h * percent)//1)
+			draw.FilledRect(x, y, x + healthBarWidth, y + h - (h * percent)//1)
 
 			if (target:GetHealth() > target:GetMaxHealth()) then
 				local maxhealth = target:GetMaxHealth()
 				percent = math.min(1, (target:GetHealth()-maxhealth)/(target:GetMaxBuffedHealth()-maxhealth))
 
 				draw.Color(0, 255, 255, 255)
-				draw.FilledRect(x, y + h - (h * percent)//1, x + width, y + h)
+				draw.FilledRect(x, y + h - (h * percent)//1, x + healthBarWidth, y + h)
 			end
 		end
 
@@ -249,7 +189,7 @@ function lib.Run(settings)
 							draw.TextShadow(x, y, cond[2])
 						elseif cond[1] == CondPositions.left then
 							local tw = draw.GetTextSize(cond[2])
-							x = feetScreenPos[1] - w - gap*2 - (healthBarEnabled and width or 0) - (tw//1)
+							x = feetScreenPos[1] - w - gap*2 - (healthBarEnabled and healthBarWidth or 0) - (tw//1)
 							y = headPos[2] + (fontSize * leftIndex) + (gap * leftIndex)
 
 							leftIndex = leftIndex + 1

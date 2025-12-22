@@ -8,6 +8,7 @@ local chokedlib = require("SDK.chokedcmds")
 local angleManager = require("SDK.angleMgr")
 local settingsManager = require("Settings.settings")
 local cvarManager = require("SDK.cvarManager")
+local colorManager = require("SDK.colors")
 
 local EAmmoType = require("SDK.ammotype")
 local EMinigunState = require("SDK.minigunstate")
@@ -46,6 +47,10 @@ end
 
 function sdk.GetProjectileSim()
 	return projectileSimulation
+end
+
+function sdk.GetColorManager()
+	return colorManager
 end
 
 --[[
@@ -319,44 +324,7 @@ end
 
 ---@param entity Entity
 function sdk.GetColor(entity)
-	if entity:GetClass() == "CBaseAnimating" then
-		local modelName = models.GetModelName(entity:GetModel())
-		if string.find(modelName, "ammopack") then
-			return {1.0, 1.0, 1.0, 1.0}
-		elseif string.find(modelName, "medkit") then
-			return {0.15294117647059, 0.96078431372549, 0.32941176470588, 1.0}
-		end
-	end
-
-	if aimTarget and aimTarget:GetIndex() == entity:GetIndex() then
-		--return settingsManager.Get().esp.colors.aimtarget
-		return {1, 1, 1, 1}
-	end
-
-	if entity:GetIndex() == client.GetLocalPlayerIndex() then
-		--return settingsManager.Get().esp.colors.localplayer
-		return {0, 1, 0.501888, 1}
-	end
-
-	if entity:GetClass() == "CPhysicsProp" then
-		return {1, 1, 1, 1}
-	end
-
-	if entity:IsWeapon() then
-		return {1, 1, 1, 1}
-	end
-
-	if playerlist.GetPriority(entity) > 0 then
-		return {1, 1, 0.0, 1}
-	elseif playerlist.GetPriority(entity) < 0 then
-		return {0, 1, 0.501888, 1}
-	end
-
-	if entity:GetTeamNumber() == 3 then
-		return {0.145077, 0.58815, 0.74499, 1}
-	else
-		return {0.929277, 0.250944, 0.250944, 1}
-	end
+	return colorManager.GetColor(entity, aimTarget)
 end
 
 return sdk

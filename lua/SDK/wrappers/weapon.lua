@@ -200,7 +200,7 @@ function Weapon:m_iWeaponState()
 end
 
 function Weapon:get_weapon_mode_float()
-	return self.__handle:AttributeHookFloat("set_weapon_mode", 0.0)
+	return self.__handle:AttributeHookFloat("set_weapon_mode", 0)
 end
 
 function Weapon:get_weapon_mode_int()
