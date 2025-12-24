@@ -51,7 +51,8 @@ type Visuals struct {
 			BottomColor color.RGBA `json:"bottomcolor"` // bottom color of the gradient
 		} `json:"healthbar"`
 
-		OptionFilter uint8 `json:"options"` // Text: Name, Class, Distance, Ubercharge %, Weapon, SteamID, Health, ??
+		OptionFilter  uint8 `json:"options"` // Text: Name, Class, Distance, Ubercharge %, Weapon, SteamID, Health, ??
+		IgnoreCloaked bool  `json:"ignorecloaked"`
 	} `json:"esp"`
 
 	Glow struct {

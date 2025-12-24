@@ -181,6 +181,9 @@ function Weapon:GetCurrentCharge()
 		local diff = globals.CurTime() - begintime
 
 		if diff > maxtime then
+			if self:GetWeaponID() == TF_WEAPON_COMPOUND_BOW then
+				return 1
+			end
 			return 0
 		end
 

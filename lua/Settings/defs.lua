@@ -48,6 +48,7 @@
 ---@field box VisualsESPBox
 ---@field healthbar VisualsESPHealthBar
 ---@field options integer # uint8 bitmask Name, Class, Distance, Ubercharge %, Weapon, SteamID, Health, ??
+---@field ignorecloaked boolean
 
 ---@class VisualsGlow
 ---@field stencil number
