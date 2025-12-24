@@ -79,7 +79,7 @@ end
 ---@param plocal Player
 ---@param settings Settings
 local function DrawFovIndicator(plocal, settings)
-	if settings.aimbot.fovindicator == false then
+	if settings.aimbot.enabled == false or settings.aimbot.fovindicator == false then
 		return
 	end
 
