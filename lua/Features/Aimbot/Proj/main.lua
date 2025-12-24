@@ -2,7 +2,6 @@ local lib = {}
 
 local playerPred = require("SDK.prediction.playersim")
 --local projPred = require("Features.Aimbot.Proj.projectilesim")
-local projectileInfo = require("Features.Aimbot.Proj.projectileinfo")
 
 local SDK = require("SDK.sdk")
 local mathlib = SDK.GetMathLib()
@@ -79,11 +78,6 @@ function lib.Run(cmd, plocal, weapon, data, state)
 		return
 	end
 
-	local info = projectileInfo(weapon:m_iItemDefinitionIndex())
-	if info == nil then
-		return
-	end
-
 	if chokedManager:GetChoked() > 0 then
 		return
 	end
@@ -125,25 +119,31 @@ function lib.Run(cmd, plocal, weapon, data, state)
 		return
 	end
 
+	local info = weapon:GetProjectileInfo()
+	if info == nil then
+		return
+	end
+
 	table.sort(validTargets, function (a, b)
 		return a[2] > b[2]
 	end)
 
-	local charge = info.m_bCharges and weapon:GetCurrentCharge() or 0
-	local speed = info:GetVelocity(charge):Length2D()
-	local gravity = 400 * info:GetGravity(charge)
+	local charge = weapon:GetCurrentCharge()
+	local speed = info.speed
+	local gravity = 400 * info.gravity
+	print(gravity)
 	local autoshoot = data.aimbot.proj.autoshoot
 
-	local trace, mask = nil, info.m_iTraceMask
-	local mins, maxs = info.m_vecMins, info.m_vecMaxs
-	local hasGravity = info.m_bHasGravity
-	local dmgRadius = info.m_flDamageRadius
+	local trace, mask = nil, MASK_SHOT_HULL
+	local mins, maxs = -info.hull, info.hull
+	local hasGravity = info.gravity > 0
+	local dmgRadius = 0---info.m_flDamageRadius
 	local selfdamage = data.aimbot.proj.selfdamage
 
 	local validTarget, validAngle = nil, nil
 
 	local weaponOffset = GetPositionOffset(plocal, weapon)
-	local extraTime = (data.aimbot.proj.compensate and weapon:GetWeaponID() == TF_WEAPON_PIPEBOMBLAUNCHER) and 1.4 or 0
+	local extraTime = (data.aimbot.proj.compensate and weapon:GetWeaponID() == TF_WEAPON_PIPEBOMBLAUNCHER) and 0.7 or 0
 
 	for _, target in ipairs (validTargets) do
 		local distance = (localPos - target[1]:GetWorldSpaceCenter()):Length()
@@ -160,12 +160,19 @@ function lib.Run(cmd, plocal, weapon, data, state)
 
 		targetPos.z = targetPos.z + weaponOffset
 
-		if hasGravity then
+		--[[if hasGravity then
 			local drop = gravity * (time - extraTime)^2
 			targetPos.z = targetPos.z + drop
-		end
+		end]]
 
-		local angle = mathlib.SolveBallisticArc(localPos, targetPos, speed, gravity)
+		local angle
+		if hasGravity then
+			angle = mathlib.SolveBallisticArc(localPos, targetPos, speed, gravity)
+		else
+			local dir = targetPos - localPos
+			mathlib.NormalizeVector(dir)
+			angle = mathlib.DirectionToAngles(dir)
+		end
 		if angle then
 			if hasGravity then
 				if CheckArcTrajectory(localPos, targetPos, EulerAngles(angle:Unpack()), speed, gravity, 15, mask, mins, maxs) == false then
@@ -198,7 +205,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	if autoshoot then
 		if weapon:CanPrimaryAttack() then
 			cmd.buttons = cmd.buttons | IN_ATTACK
-			if info.m_bCharges and charge > 0 then
+			if charge > 0 then
 				cmd.buttons = cmd.buttons & ~IN_ATTACK
 			end
 		end

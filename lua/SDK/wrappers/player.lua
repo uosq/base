@@ -16,6 +16,10 @@ function Player.Get(entity)
 	return setmetatable({__handle = entity}, Player)
 end
 
+function Player:GetShootPos()
+	return self:m_vecOrigin() + self:GetEyePosOffset()
+end
+
 function Player:IsEnemy()
 	local plocal = entities.GetLocalPlayer()
 	if plocal == nil then
