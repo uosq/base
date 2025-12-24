@@ -18,7 +18,7 @@ local function GetPositionOffset(plocal, weapon)
 	end
 
 	if weaponID == E_WeaponBaseID.TF_WEAPON_COMPOUND_BOW then
-		return plocal:GetMaxs().z * 0.8
+		return plocal:GetMaxs().z
 	end
 
 	return plocal:GetMaxs().z * 0.5

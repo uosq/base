@@ -179,11 +179,6 @@ function Weapon:GetCurrentCharge()
 		local maxtime = self.__handle:GetChargeMaxTime()
 		local begintime = self.__handle:GetChargeBeginTime()
 		local diff = globals.CurTime() - begintime
-		if self:GetWeaponID() == E_WeaponBaseID.TF_WEAPON_COMPOUND_BOW then
-			if diff >= maxtime then
-				return 1.0
-			end
-		end
 
 		if diff > maxtime then
 			return 0
