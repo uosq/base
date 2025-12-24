@@ -15,7 +15,6 @@ local EMinigunState = require("SDK.minigunstate")
 local EBoneIndex = require("SDK.boneindexes")
 
 local playerSimulation = require("SDK.prediction.playersim")
-local projectileSimulation = require("SDK.prediction.projectilesim")
 
 local TF_PARTICLE_MAX_CHARGE_TIME = 2.0
 
@@ -43,10 +42,6 @@ end
 
 function sdk.GetPlayerSim()
 	return playerSimulation
-end
-
-function sdk.GetProjectileSim()
-	return projectileSimulation
 end
 
 function sdk.GetColorManager()

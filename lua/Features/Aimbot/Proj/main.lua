@@ -131,7 +131,6 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	local charge = weapon:GetCurrentCharge()
 	local speed = info.speed
 	local gravity = 400 * info.gravity
-	print(gravity)
 	local autoshoot = data.aimbot.proj.autoshoot
 
 	local trace, mask = nil, MASK_SHOT_HULL
@@ -159,11 +158,6 @@ function lib.Run(cmd, plocal, weapon, data, state)
 		local _, targetPos = playerPred(target[1]:GetHandle(), time)
 
 		targetPos.z = targetPos.z + weaponOffset
-
-		--[[if hasGravity then
-			local drop = gravity * (time - extraTime)^2
-			targetPos.z = targetPos.z + drop
-		end]]
 
 		local angle
 		if hasGravity then
