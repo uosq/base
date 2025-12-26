@@ -103,6 +103,10 @@ function Weapon:HasPrimaryAmmoForShot()
 	return (iClip == WEAPON_NOCLIP and owner:GetAmmoCount(self:m_iPrimaryAmmoType()) or iClip) >= self:GetAmmoPerShot()
 end
 
+function Weapon:CanCharge()
+	return self.__handle:CanCharge()
+end
+
 function Weapon:CanPrimaryAttack()
 	local owner = self:m_hOwner()
 	local player = playerWrapper.Get(owner)
@@ -124,15 +128,15 @@ function Weapon:CanSecondaryAttack()
 	return self:m_flNextSecondaryAttack() <= curtime and owner:m_flNextAttack() <= curtime
 end
 
-function Weapon:IsMeleeWeapon()
+function Weapon:IsMelee()
 	return self.__handle:IsMeleeWeapon()
 end
 
-function Weapon:GetWeaponData()
+function Weapon:GetData()
 	return self.__handle:GetWeaponData()
 end
 
-function Weapon:GetWeaponProjectileType()
+function Weapon:GetProjectileType()
 	return self.__handle:GetWeaponProjectileType()
 end
 
@@ -147,7 +151,7 @@ function Weapon:CanShootPrimary(cmd)
 	end
 
 	if self.__handle:IsMeleeWeapon() then
-		return self:m_flNextPrimaryAttack() + self:GetWeaponData().smackDelay <= globals.CurTime()
+		return self:m_flNextPrimaryAttack() + self:GetData().smackDelay <= globals.CurTime()
 	end
 
 	return self:CanPrimaryAttack()
@@ -170,24 +174,48 @@ function Weapon:m_iItemDefinitionIndex()
 	return self.__handle:GetPropInt("m_Item", "m_iItemDefinitionIndex")
 end
 
+function Weapon:CanCharge()
+	local id
+
+	if self:IsHitscan() or self:IsMelee() then
+		return false
+	end
+
+	id = self:GetID()
+
+	if id == TF_WEAPON_PIPEBOMBLAUNCHER
+	or id == TF_WEAPON_COMPOUND_BOW
+	or id == TF_WEAPON_CANNON then
+		return true
+	end
+
+	return false
+end
+
 ---@return number
 function Weapon:GetCurrentCharge()
-	--- WARNING: CanCharge() will crash your game with a Rocket Launcher!
-	--- I have to find another way
-	--- This doesn't work right with Loose Cannon
-	if self.__handle:CanCharge() then
-		local maxtime = self.__handle:GetChargeMaxTime()
-		local begintime = self.__handle:GetChargeBeginTime()
-		local diff = globals.CurTime() - begintime
+	if self:CanCharge() then
+		local id = self:GetID()
+		local charge = self.__handle:GetCurrentCharge() or 0
 
-		if diff > maxtime then
-			if self:GetWeaponID() == TF_WEAPON_COMPOUND_BOW then
-				return 1
+		--- sticky launcher
+		if id == TF_WEAPON_PIPEBOMBLAUNCHER then
+			if charge > self.__handle:GetChargeMaxTime() then
+				return 0
 			end
-			return 0
+
+			return charge
 		end
 
-		return diff/maxtime
+		--- loose cannon
+		if id == TF_WEAPON_CANNON then
+			charge = mathlib.RemapVal(charge, 1, 0, 0, 1, true)
+		end
+
+		--- there are probably more
+		--- but I dont have more weapons xd
+
+		return charge
 	end
 
 	return 0
@@ -197,7 +225,7 @@ function Weapon:GetHandle()
 	return self.__handle
 end
 
-function Weapon:GetWeaponID()
+function Weapon:GetID()
 	return self.__handle:GetWeaponID()
 end
 
@@ -248,7 +276,7 @@ function Weapon:get_weapon_mode_int()
 end
 
 function Weapon:IsAmbassador()
-	return self:GetWeaponID() == TF_WEAPON_REVOLVER and self:get_weapon_mode_float() == 1.0
+	return self:GetID() == TF_WEAPON_REVOLVER and self:get_weapon_mode_float() == 1.0
 end
 
 function Weapon:CanAmbassadorHeadshot()
@@ -260,11 +288,11 @@ function Weapon:CanAmbassadorHeadshot()
 end
 
 function Weapon:IsHitscan()
-	return self:GetWeaponProjectileType() == E_ProjectileType.TF_PROJECTILE_BULLET
+	return self:GetProjectileType() == E_ProjectileType.TF_PROJECTILE_BULLET
 end
 
 function Weapon:IsProjectileWeapon()
-	return self:IsHitscan() == false and self:IsMeleeWeapon() == false
+	return self:IsHitscan() == false and self:IsMelee() == false
 end
 
 ---@param player Player
@@ -328,7 +356,7 @@ function Weapon:CanHit(player)
 	end
 
 	if m_hOwner:GetTeamNumber() == player:GetTeamNumber() then
-		local weaponID = self:GetWeaponID()
+		local weaponID = self:GetID()
 		if weaponID == TF_WEAPON_MEDIGUN then
 			return true
 		end
@@ -367,7 +395,7 @@ function Weapon:GetProjectileInfo()
 	local _, gravity = client.GetConVar("sv_gravity")
 	gravity = gravity/800
 
-	local id = self:GetWeaponID()
+	local id = self:GetID()
 	if id == TF_WEAPON_ROCKETLAUNCHER
 	or id == TF_WEAPON_DIRECTHIT then
 		local info = ProjectileInfo_t.New(nil, 0, 0, 0, 0, 60, Vector3(6, 6, 6), false)

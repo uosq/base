@@ -13,7 +13,7 @@ local playersim = SDK.GetPlayerSim()
 ---@param weapon Weapon
 ---@return Vector3?
 local function GetShootPosition(plocal, target, weapon)
-	local weaponID = weapon:GetWeaponID()
+	local weaponID = weapon:GetID()
 	if weaponID == TF_WEAPON_REVOLVER then
 		if weapon:IsAmbassador() and weapon:CanAmbassadorHeadshot() then
 			local headPosition = target:GetBonePosition(boneIndexes.Head) + Vector3(0, 0, 5)

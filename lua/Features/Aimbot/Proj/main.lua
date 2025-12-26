@@ -11,7 +11,7 @@ local chokedManager = SDK.GetChokedLib()
 ---@param plocal Player
 ---@param weapon Weapon
 local function GetPositionOffset(plocal, weapon)
-	local weaponID = weapon:GetWeaponID()
+	local weaponID = weapon:GetID()
 	if weaponID == E_WeaponBaseID.TF_WEAPON_ROCKETLAUNCHER
 	or weaponID == E_WeaponBaseID.TF_WEAPON_DIRECTHIT then
 		return 10
@@ -132,6 +132,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	local speed = info.speed
 	local gravity = 400 * info.gravity
 	local autoshoot = data.aimbot.proj.autoshoot
+	local canCharge = weapon:CanCharge()
 
 	local trace, mask = nil, MASK_SHOT_HULL
 	local mins, maxs = -info.hull, info.hull
@@ -142,7 +143,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	local validTarget, validAngle = nil, nil
 
 	local weaponOffset = GetPositionOffset(plocal, weapon)
-	local extraTime = (data.aimbot.proj.compensate and weapon:GetWeaponID() == TF_WEAPON_PIPEBOMBLAUNCHER) and 0.7 or 0
+	local extraTime = (data.aimbot.proj.compensate and weapon:GetID() == TF_WEAPON_PIPEBOMBLAUNCHER) and 0.7 or 0
 
 	for _, target in ipairs (validTargets) do
 		local distance = (localPos - target[1]:GetWorldSpaceCenter()):Length()
@@ -155,8 +156,8 @@ function lib.Run(cmd, plocal, weapon, data, state)
 			goto skip
 		end
 
-		local _, targetPos = playerPred(target[1]:GetHandle(), time)
-
+		local path, lastPos = playerPred(target[1], time)
+		local targetPos = Vector3(lastPos:Unpack())
 		targetPos.z = targetPos.z + weaponOffset
 
 		local angle
@@ -184,6 +185,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 
 			validTarget = target[1]
 			validAngle = angle
+			state.path = path
 			break
 		end
 
@@ -197,11 +199,10 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	--- this is really fucking buggy
 	--- doesn't work right with chargeable weapons (huntsman, stickybomb launcher, etc)
 	if autoshoot then
-		if weapon:CanPrimaryAttack() then
-			cmd.buttons = cmd.buttons | IN_ATTACK
-			if charge > 0 then
-				cmd.buttons = cmd.buttons & ~IN_ATTACK
-			end
+		cmd.buttons = cmd.buttons | IN_ATTACK
+
+		if canCharge and charge > 0 then
+			cmd.buttons = cmd.buttons & ~IN_ATTACK
 		end
 	end
 

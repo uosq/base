@@ -111,6 +111,32 @@ function Player:m_flNextAttack()
 	return self.__handle:GetPropFloat("bcc_localdata", "m_flNextAttack")
 end
 
+function Player:EstimateAbsVelocity()
+	return self.__handle:EstimateAbsVelocity()
+end
+
+---@param attrib string
+---@param defaultValue number? # optional (default = `1.0`)
+---@return number
+function Player:AttributeHookFloat(attrib, defaultValue)
+	return self.__handle:AttributeHookFloat(attrib, defaultValue)
+end
+
+function Player:GetMoveType()
+	return self.__handle:GetMoveType()
+end
+
+---@param attrib string
+---@param defaultValue number? # optional (default = `1.0`)
+---@return number
+function Player:AttributeHookInt(attrib, defaultValue)
+	return self.__handle:AttributeHookInt(attrib, defaultValue)
+end
+
+function Player:GetCarryingRuneType()
+	return self.__handle:GetCarryingRuneType()
+end
+
 function Player:m_nTickBase()
 	return self.__handle:GetPropInt("m_nTickBase")
 end

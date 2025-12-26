@@ -12,6 +12,7 @@ local lib = {}
 ---@class AimbotState
 local state = {
 	target = nil,
+	path = {},
 }
 
 local currentAimFov = 0
@@ -63,10 +64,10 @@ function lib.Run(cmd, data)
 
 	previousAimFov = currentAimFov
 
-	if weapon:GetWeaponProjectileType() == E_ProjectileType.TF_PROJECTILE_BULLET then
+	if weapon:GetProjectileType() == E_ProjectileType.TF_PROJECTILE_BULLET then
 		currentAimFov = mathlib.Lerp(previousAimFov, SDK.GetSettingsManager().Get().aimbot.hitscan.fov, 0.2)
 		hitscan.Run(cmd, plocal, weapon, data, state)
-	elseif weapon:IsMeleeWeapon() == false then
+	elseif weapon:IsMelee() == false then
 		currentAimFov = mathlib.Lerp(previousAimFov, SDK.GetSettingsManager().Get().aimbot.proj.fov, 0.2)
 		projectile.Run(cmd, plocal, weapon, data, state)
 	else
@@ -97,6 +98,31 @@ local function DrawFovIndicator(plocal, settings)
 	draw.OutlinedCircle(w//2, h//2, radius//1, 32)
 end
 
+local function DrawPath()
+	if type(state.path) ~= "table" then
+		return false
+	end
+
+	if #state.path < 2 then
+		return false
+	end
+
+	local path = state.path
+
+	draw.Color(255, 255, 255, 255)
+
+	local prev = client.WorldToScreen(path[1])
+	for i = 2, #path do
+		local cur = client.WorldToScreen(path[i])
+		if prev and cur then
+			draw.Line(prev[1], prev[2], cur[1], cur[2])
+			prev = cur
+		end
+	end
+
+	return true
+end
+
 function lib.Draw()
 	local settings = SDK.GetSettingsManager().Get()
 
@@ -109,6 +135,7 @@ function lib.Draw()
 		return
 	end
 
+	DrawPath()
 	DrawFovIndicator(plocal, settings)
 end
 

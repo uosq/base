@@ -156,7 +156,7 @@ function sdk.IsAttacking(plocal, weapon, cmd)
 	local iTickBase = useTickBase and plocal:m_nTickBase() or cmd.tick_count
 
 	if weapon:GetSlot() == E_LoadoutSlot.LOADOUT_POSITION_MELEE then
-		local weaponID = weapon:GetWeaponID()
+		local weaponID = weapon:GetID()
 		if weaponID == TF_WEAPON_KNIFE then
 			return weapon:CanPrimaryAttack() and (cmd.buttons & IN_ATTACK) ~= 0
 
@@ -188,7 +188,7 @@ function sdk.IsAttacking(plocal, weapon, cmd)
 		return weapon:CanPrimaryAttack()
 	end
 
-	local weaponID = weapon:GetWeaponID()
+	local weaponID = weapon:GetID()
 	if weaponID == TF_WEAPON_COMPOUND_BOW then
 		return cmd.buttons & IN_ATTACK == 0 and weapon:GetCurrentCharge() > 0.0
 	end

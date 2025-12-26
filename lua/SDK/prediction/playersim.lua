@@ -1,4 +1,8 @@
-local outputPath = {}
+--- Returns the type of its only argument, coded as a string.
+---@return "AttributeDefinition" | "BitBuffer" | "DrawModelContext" | "Entity" | "EulerAngles" | "EventInfo" | "GameEvent" | "GameServerLobby" | "Item" | "ItemDefinition" | "LobbyPlayer" | "MatchGroup" | "MatchMapDefinition" | "Material" | "Model" | "NetChannel" | "NetMessage" | "PartyMemberActivity" | "PhysicsCollisionModel" | "PhysicsEnvironment" | "PhysicsObject" | "PhysicsObjectParameters" | "PhysicsSolid" | "StaticPropRenderInfo" | "StringCmd" | "StudioBBox" | "StudioHitboxSet" | "StudioModelHeader" | "TempEntity" | "Texture" | "Trace" | "UserCmd" | "UserMessage" | "Vector3" | "ViewSetup" | "WeaponData
+local function typeof(v)
+	return getmetatable(v).__name
+end
 
 --- Why is this not in the lua docs?
 local RuneTypes_t = {
@@ -42,13 +46,13 @@ local function Accelerate(velocity, wishdir, wishspeed, accel, frametime)
 	velocity.z = velocity.z + wishdir.z * accelspeed
 end
 
----@param target Entity
+---@param target Player
 ---@return number
 local function GetAirSpeedCap(target)
-	local m_hGrapplingHookTarget = target:GetPropEntity("m_hGrapplingHookTarget")
+	local m_hGrapplingHookTarget = target:m_hGrapplingHookTarget()
 	if m_hGrapplingHookTarget then
 		if target:GetCarryingRuneType() == RuneTypes_t.RUNE_AGILITY then
-			local m_iClass = target:GetPropInt("m_iClass")
+			local m_iClass = target:m_iClass()
 			return (m_iClass == E_Character.TF2_Soldier or E_Character.TF2_Heavy) and 850 or 950
 		end
 		local _, tf_grapplinghook_move_speed = client.GetConVar("tf_grapplinghook_move_speed")
@@ -80,7 +84,7 @@ end
 ---@param accel number
 ---@param dt number globals.TickInterval()
 ---@param surf number Is currently surfing?
----@param target Entity
+---@param target Player
 local function AirAccelerate(v, wishdir, wishspeed, accel, dt, surf, target)
 	wishspeed = math.min(wishspeed, GetAirSpeedCap(target))
 	local currentspeed = v:Dot(wishdir)
@@ -130,6 +134,10 @@ end
 ---@param is_on_ground boolean
 ---@param frametime number
 local function Friction(velocity, is_on_ground, frametime)
+	assert(typeof(velocity) == "Vector3", "Friction: velocity is not a Vector3!")
+	assert(type(is_on_ground) == "boolean", "Friction: is_on_ground is not a boolean!")
+	assert(type(frametime) == "number", "Friction: frametime is not a number!")
+
 	local speed, newspeed, control, friction, drop
 	speed = velocity:LengthSqr()
 	if speed < 0.01 then
@@ -158,135 +166,109 @@ end
 
 -- Clip velocity along a plane normal
 local function ClipVelocity(velocity, normal, overbounce)
+	assert(typeof(velocity) == "Vector3", "ClipVelocity: velocity is not a Vector3!")
+	assert(typeof(normal) == "Vector3", "ClipVelocity: normal is not a Vector3!")
+	assert(type(overbounce) == "number", "ClipVelocity: overbounce is not a number!")
+
 	local backoff = velocity:Dot(normal) * overbounce
-	
+
 	velocity.x = velocity.x - normal.x * backoff
 	velocity.y = velocity.y - normal.y * backoff
 	velocity.z = velocity.z - normal.z * backoff
-	
+
 	-- Zero out small components
 	if math.abs(velocity.x) < 0.01 then velocity.x = 0 end
 	if math.abs(velocity.y) < 0.01 then velocity.y = 0 end
 	if math.abs(velocity.z) < 0.01 then velocity.z = 0 end
 end
 
-local function TryPlayerMove(origin, velocity, mins, maxs, index, tickinterval)
-	local MAX_CLIP_PLANES = 5
-	local time_left = tickinterval
-	local planes = {}
-	local numplanes = 0
+---@param origin Vector3
+---@param velocity Vector3
+---@param mins Vector3
+---@param maxs Vector3
+---@param step number
+---@param dt number
+---@return Vector3 NewOrigin, boolean IfMoved
+local function TryStepMove(origin, velocity, mins, maxs, step, dt)
+	local move = velocity * dt
 
-	-- Try moving up to 4 times (with bumps)
-	for _ = 1, 4 do
-		if time_left <= 0 then
-			break
-		end
+	--- try normal move 
+	local trace = engine.TraceHull(
+		origin,
+		origin + move,
+		mins,
+		maxs,
+		MASK_PLAYERSOLID,
+		function() return false end
+	)
 
-		local end_pos = Vector3(
-			origin.x + velocity.x * time_left,
-			origin.y + velocity.y * time_left,
-			origin.z + velocity.z * time_left
-		)
-
-		local trace = engine.TraceHull(origin, end_pos, mins, maxs, MASK_PLAYERSOLID, function(ent, contentsMask)
-			return ent:GetIndex() ~= index
-		end)
-
-		if trace.fraction > 0 then
-			origin.x = trace.endpos.x
-			origin.y = trace.endpos.y
-			origin.z = trace.endpos.z
-			numplanes = 0
-		end
-
-		if trace.fraction == 1 then
-			break
-		end
-
-		-- Update time remaining
-		time_left = time_left - time_left * trace.fraction
-
-		-- Record this plane
-		if numplanes < MAX_CLIP_PLANES then
-			planes[numplanes] = trace.plane
-			numplanes = numplanes + 1
-		end
-
-		-- If we hit the ground and going down, stop vertical movement
-		if trace.plane.z > 0.7 and velocity.z < 0 then
-			velocity.z = 0
-		end
-
-		-- Clip velocity against all planes we've hit
-		local i = 1
-		while i <= numplanes do
-			ClipVelocity(velocity, planes[i], 1.0)
-			
-			-- Check if velocity is still going into any plane
-			local j = 1
-			while j <= numplanes do
-				if j ~= i then
-					local dot = velocity:Dot(planes[j])
-					if dot < 0 then
-						break
-					end
-				end
-				j = j + 1
-			end
-			
-			if j == numplanes then
-				break
-			end
-			
-			i = i + 1
-		end
-		
-		-- If we're going into all planes, stop
-		if i == numplanes then
-			if numplanes >= 2 then
-				-- Slide along the crease between planes
-				local dir = Vector3(
-					planes[1].y * planes[2].z - planes[1].z * planes[2].y,
-					planes[1].z * planes[2].x - planes[1].x * planes[2].z,
-					planes[1].x * planes[2].y - planes[1].y * planes[2].x
-				)
-				
-				local d = dir:Dot(velocity)
-				velocity.x = dir.x * d
-				velocity.y = dir.y * d
-				velocity.z = dir.z * d
-			end
-			
-			-- Still going into a plane, stop all movement
-			local dot = velocity:Dot(planes[0])
-			if dot < 0 then
-				velocity.x = 0
-				velocity.y = 0
-				velocity.z = 0
-				break
-			end
-		end
+	--- 0.7 is roughly 90 degrees right?
+	--- i dont remember
+	--- its working so i dont care xd
+	if trace.fraction == 1.0 and trace.plane.z <= 0.7 then
+		return origin + move, true
 	end
 
-	return origin
+	--- step up
+	local up = Vector3(0, 0, step)
+	local traceUp = engine.TraceHull(
+		origin,
+		origin + up,
+		mins,
+		maxs,
+		MASK_PLAYERSOLID,
+		function() return false end
+	)
+
+	if traceUp.fraction < 1.0 and traceUp.plane.z <= 0.7 then
+		return origin, false
+	end
+
+	local stepOrigin = origin + up
+	local traceForward = engine.TraceHull(
+		stepOrigin,
+		stepOrigin + move,
+		mins,
+		maxs,
+		MASK_PLAYERSOLID,
+		function() return false end
+	)
+
+	if traceForward.fraction < 1.0 and traceForward.plane.z <= 0.7 then
+		return origin, false
+	end
+
+	--- step down
+	local traceDown = engine.TraceHull(
+		traceForward.endpos,
+		traceForward.endpos - up,
+		mins,
+		maxs,
+		MASK_PLAYERSOLID,
+		function() return false end
+	)
+
+	return traceDown.endpos, true
 end
 
----@param player Entity
+---@param player Player
 ---@param time_seconds number
----@return Vector3[], Vector3, number[]
-local function RunSeconds(player, time_seconds, lazyness)
+---@return Vector3[], Vector3
+local function RunSeconds(player, time_seconds)
 	local path = {}
 	local velocity = player:EstimateAbsVelocity() or Vector3()
 	local origin = player:GetAbsOrigin() + Vector3(0, 0, 1)
 
 	if velocity:Length() <= 10 then
 		path[1] = origin
-		return path, origin, {globals.CurTime()}
+		return path, origin
 	end
 
-	local maxspeed = player:GetPropFloat("m_flMaxspeed") or 450
+	local maxspeed = player:m_flMaxspeed()
+
 	local clock = 0.0
-	local tickinterval = globals.TickInterval() * (lazyness or 10.0)
+	local tickinterval = globals.TickInterval()
+
 	local wishdir = velocity / velocity:Length()
 	local mins, maxs = player:GetMins(), player:GetMaxs()
 
@@ -294,38 +276,56 @@ local function RunSeconds(player, time_seconds, lazyness)
 	local _, sv_accelerate = client.GetConVar("sv_accelerate")
 
 	local index = player:GetIndex()
-	local curtime = globals.CurTime()
-	local timetable = {}
 
 	local speed = velocity:Length2D()
 	local wishspeed = math.min(speed, maxspeed)
 
+	local gravity = 800 * tickinterval
+
+	local stepsize = player:m_flStepSize()
+
 	while clock < time_seconds do
 		local is_on_ground = CheckIsOnGround(origin, mins, maxs, index)
 
-		Friction(velocity, is_on_ground, tickinterval)
+		velocity.z = velocity.z - gravity * 0.5 * tickinterval
 
 		if is_on_ground then
-			Accelerate(velocity, wishdir, wishspeed, sv_accelerate, tickinterval)
 			velocity.z = 0
+			Friction(velocity, is_on_ground, tickinterval)
+			Accelerate(velocity, wishdir, wishspeed, sv_accelerate, tickinterval)
 		else
 			AirAccelerate(velocity, wishdir, maxspeed, sv_airaccelerate, tickinterval, 0, player)
-			velocity.z = velocity.z - 800 * tickinterval
+			velocity.z = velocity.z - gravity
 		end
 
-		origin = TryPlayerMove(origin, velocity, mins, maxs, index, tickinterval)
+		local newOrigin, moved = TryStepMove(
+			origin,
+			velocity,
+			mins,
+			maxs,
+			stepsize,
+			tickinterval
+		)
 
-		-- If on ground, stick to it
+		velocity.z = velocity.z - gravity * 0.5 * tickinterval
+
+		if moved then
+			origin = newOrigin
+		else
+			velocity.x = 0
+			velocity.y = 0
+		end
+
+		--- if on ground, stick to it
 		if is_on_ground then
 			StayOnGround(origin, mins, maxs, 18, index)
 		end
 
 		path[#path + 1] = Vector3(origin:Unpack())
-		timetable[#timetable+1] = curtime + clock
 		clock = clock + tickinterval
 	end
 
-	return path, path[#path], timetable
+	return path, path[#path]
 end
 
 return RunSeconds
