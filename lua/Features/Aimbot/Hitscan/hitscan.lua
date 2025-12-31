@@ -101,7 +101,7 @@ function aim.Run(cmd, plocal, weapon, data, state)
 				cmd.buttons = cmd.buttons | IN_ATTACK
 			end
 
-			if SDK.IsAttacking(plocal, weapon, cmd) then
+			if SDK.IsAttacking(weapon, cmd) then
 				local angle = mathlib.DirectionToAngles(target[1])
 				cmd.viewangles = angle
 			end

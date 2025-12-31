@@ -17,7 +17,6 @@ local function OnFrameStageNotify(stage)
 		end
 
 		settings.Store()
-
 	elseif stage == E_ClientFrameStage.FRAME_RENDER_START then
 		local angle = angleManager.GetAngle()
 		if angle then

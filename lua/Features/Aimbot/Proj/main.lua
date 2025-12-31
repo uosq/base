@@ -137,7 +137,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 	local trace, mask = nil, MASK_SHOT_HULL
 	local mins, maxs = -info.hull, info.hull
 	local hasGravity = info.gravity > 0
-	local dmgRadius = 0---info.m_flDamageRadius
+	local dmgRadius = info.damage_radius
 	local selfdamage = data.aimbot.proj.selfdamage
 
 	local validTarget, validAngle = nil, nil
@@ -147,7 +147,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 
 	for _, target in ipairs (validTargets) do
 		local distance = (localPos - target[1]:GetWorldSpaceCenter()):Length()
-		if selfdamage == false and distance <= dmgRadius then
+		if dmgRadius > 0 and selfdamage == false and distance <= dmgRadius then
 			goto skip
 		end
 
@@ -206,7 +206,7 @@ function lib.Run(cmd, plocal, weapon, data, state)
 		end
 	end
 
-	if SDK.IsAttacking(plocal, weapon, cmd) then
+	if SDK.IsAttacking(weapon, cmd) then
 		cmd.viewangles = validAngle
 		cmd.sendpacket = false
 	end

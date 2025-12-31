@@ -20,6 +20,9 @@ require("Hooks.DoPostScreenSpaceEffects")
 --- Load DrawModel
 require("Hooks.DrawModel")
 
+--- Load RenderView
+--require("Hooks.RenderView")
+
 --- Load Unload
 require("Hooks.Unload")
 

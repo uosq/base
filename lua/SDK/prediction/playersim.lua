@@ -105,7 +105,7 @@ local function CheckIsOnGround(origin, mins, maxs, index)
 		return ent:GetIndex() ~= index
 	end)
 
-	return trace and trace.fraction < 1.0 and not trace.startsolid and trace.plane and trace.plane.z >= 0.7
+	return trace.fraction < 1.0 --[[and not trace.startsolid]] and trace.plane.z >= 0.7
 end
 
 ---@param index integer
@@ -188,67 +188,86 @@ end
 ---@param maxs Vector3
 ---@param step number
 ---@param dt number
----@return Vector3 NewOrigin, boolean IfMoved
+---@return Vector3 newOrigin, boolean moved
 local function TryStepMove(origin, velocity, mins, maxs, step, dt)
-	local move = velocity * dt
+    local move = velocity * dt
 
-	--- try normal move 
-	local trace = engine.TraceHull(
-		origin,
-		origin + move,
-		mins,
-		maxs,
-		MASK_PLAYERSOLID,
-		function() return false end
-	)
+    local trace = engine.TraceHull(
+        origin,
+        origin + move,
+        mins,
+        maxs,
+        MASK_PLAYERSOLID,
+        function() return false end
+    )
 
-	--- 0.7 is roughly 90 degrees right?
-	--- i dont remember
-	--- its working so i dont care xd
-	if trace.fraction == 1.0 and trace.plane.z <= 0.7 then
-		return origin + move, true
-	end
+    local slideEnd = trace.endpos
+    local slideFrac = trace.fraction
 
-	--- step up
-	local up = Vector3(0, 0, step)
-	local traceUp = engine.TraceHull(
-		origin,
-		origin + up,
-		mins,
-		maxs,
-		MASK_PLAYERSOLID,
-		function() return false end
-	)
+    if slideFrac == 1.0 then
+        return slideEnd, true
+    end
 
-	if traceUp.fraction < 1.0 and traceUp.plane.z <= 0.7 then
-		return origin, false
-	end
+    --- step up
+    local up = Vector3(0, 0, step)
 
-	local stepOrigin = origin + up
-	local traceForward = engine.TraceHull(
-		stepOrigin,
-		stepOrigin + move,
-		mins,
-		maxs,
-		MASK_PLAYERSOLID,
-		function() return false end
-	)
+    local traceUp = engine.TraceHull(
+        origin,
+        origin + up,
+        mins,
+        maxs,
+        MASK_PLAYERSOLID,
+        function() return false end
+    )
 
-	if traceForward.fraction < 1.0 and traceForward.plane.z <= 0.7 then
-		return origin, false
-	end
+    --- cant step up
+    if traceUp.fraction < 1.0 then
+        return slideEnd, slideFrac > 0
+    end
 
-	--- step down
-	local traceDown = engine.TraceHull(
-		traceForward.endpos,
-		traceForward.endpos - up,
-		mins,
-		maxs,
-		MASK_PLAYERSOLID,
-		function() return false end
-	)
+    local stepOrigin = traceUp.endpos
 
-	return traceDown.endpos, true
+    --- forward
+    local traceForward = engine.TraceHull(
+        stepOrigin,
+        stepOrigin + move,
+        mins,
+        maxs,
+        MASK_PLAYERSOLID,
+        function() return false end
+    )
+
+    --- blocked
+    if traceForward.fraction < 1.0 then
+        return slideEnd, slideFrac > 0
+    end
+
+    --- step down
+    local traceDown = engine.TraceHull(
+        traceForward.endpos,
+        traceForward.endpos - up,
+        mins,
+        maxs,
+        MASK_PLAYERSOLID,
+        function() return false end
+    )
+
+    --- no ground found
+    if traceDown.fraction == 1.0 then
+        return slideEnd, slideFrac > 0
+    end
+
+    --- try to find best option
+    local stepEnd = traceDown.endpos
+
+    local slideDist = (slideEnd - origin):Length2D()
+    local stepDist  = (stepEnd  - origin):Length2D()
+
+    if stepDist > slideDist then
+        return stepEnd, true
+    end
+
+    return slideEnd, slideFrac > 0
 end
 
 ---@param player Player
@@ -256,8 +275,8 @@ end
 ---@return Vector3[], Vector3
 local function RunSeconds(player, time_seconds)
 	local path = {}
-	local velocity = player:EstimateAbsVelocity() or Vector3()
-	local origin = player:GetAbsOrigin() + Vector3(0, 0, 1)
+	local velocity = player:m_vecVelocity()
+	local origin = player:m_vecOrigin()--- + Vector3(0, 0, 1)
 
 	if velocity:Length() <= 10 then
 		path[1] = origin
@@ -277,17 +296,17 @@ local function RunSeconds(player, time_seconds)
 
 	local index = player:GetIndex()
 
-	local speed = velocity:Length2D()
+	local speed = velocity:Length()
 	local wishspeed = math.min(speed, maxspeed)
 
-	local gravity = 800 * tickinterval
+	local gravity = 800 * tickinterval * 0.5
 
 	local stepsize = player:m_flStepSize()
 
 	while clock < time_seconds do
 		local is_on_ground = CheckIsOnGround(origin, mins, maxs, index)
 
-		velocity.z = velocity.z - gravity * 0.5 * tickinterval
+		velocity.z = velocity.z - gravity
 
 		if is_on_ground then
 			velocity.z = 0
@@ -295,7 +314,6 @@ local function RunSeconds(player, time_seconds)
 			Accelerate(velocity, wishdir, wishspeed, sv_accelerate, tickinterval)
 		else
 			AirAccelerate(velocity, wishdir, maxspeed, sv_airaccelerate, tickinterval, 0, player)
-			velocity.z = velocity.z - gravity
 		end
 
 		local newOrigin, moved = TryStepMove(
@@ -307,7 +325,7 @@ local function RunSeconds(player, time_seconds)
 			tickinterval
 		)
 
-		velocity.z = velocity.z - gravity * 0.5 * tickinterval
+		velocity.z = velocity.z - gravity
 
 		if moved then
 			origin = newOrigin
@@ -316,9 +334,10 @@ local function RunSeconds(player, time_seconds)
 			velocity.y = 0
 		end
 
+		is_on_ground = CheckIsOnGround(origin, mins, maxs, index)
 		--- if on ground, stick to it
 		if is_on_ground then
-			StayOnGround(origin, mins, maxs, 18, index)
+			StayOnGround(origin, mins, maxs, stepsize, index)
 		end
 
 		path[#path + 1] = Vector3(origin:Unpack())

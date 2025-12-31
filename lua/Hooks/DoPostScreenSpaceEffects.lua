@@ -20,7 +20,6 @@ local function DoPostScreenSpaceEffects()
 	if settings.visuals.chams.enabled then
 		chams.DoPostScreenSpaceEffects(settings)
 	end
-
 end
 
 callbacks.Register("DoPostScreenSpaceEffects", DoPostScreenSpaceEffects)

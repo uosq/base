@@ -24,6 +24,8 @@ local function OnCreateMove(cmd)
 	else
 		chokedManager:AddChoked()
 	end
+
+	---cmd.impulse = 101
 end
 
 callbacks.Register("CreateMove", OnCreateMove)

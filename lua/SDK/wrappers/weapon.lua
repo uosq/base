@@ -408,6 +408,7 @@ function Weapon:GetProjectileInfo()
 		info.hull.z = 0
 		info.gravity = 0
 		info.simple_trace = true
+		info.damage_radius = id == TF_WEAPON_ROCKETLAUNCHER and 146 or 44
 		return info
 	end
 

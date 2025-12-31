@@ -143,17 +143,15 @@ end
 --- Man this was an absolute nightmare to convert to Lua
 --- Holy shit
 --- Why we dont have a function for this natively??
----@param plocal Player
 ---@param weapon Weapon
 ---@param cmd UserCmd
 ---@return boolean
-function sdk.IsAttacking(plocal, weapon, cmd)
-	if not plocal or cmd.weaponselect ~= 0 then
+function sdk.IsAttacking(weapon, cmd)
+	if not weapon or cmd.weaponselect ~= 0 then
 		return false
 	end
 
-	local useTickBase = engine.GetServerIP() ~= "loopback"
-	local iTickBase = useTickBase and plocal:m_nTickBase() or cmd.tick_count
+	local iTickBase = cmd.tick_count
 
 	if weapon:GetSlot() == E_LoadoutSlot.LOADOUT_POSITION_MELEE then
 		local weaponID = weapon:GetID()
